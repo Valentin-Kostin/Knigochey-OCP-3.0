@@ -1,6 +1,6 @@
 """
-Tesseract OCR engine implementation.
-Uses pytesseract for Python bindings to Tesseract OCR.
+Реализация OCR-движка Tesseract.
+Использует pytesseract для Python-привязок к Tesseract OCR.
 """
 
 import time
@@ -11,38 +11,38 @@ from .base import OCREngine, OCRResult
 
 
 class TesseractEngine(OCREngine):
-    """Tesseract OCR engine for historical Slavic text recognition."""
+    """OCR-движок Tesseract для распознавания исторических славянских текстов."""
     
-    # Supported languages for Slavic texts
+    # Поддерживаемые языки для славянских текстов
     SLAVIC_LANGS = {
-        "rus": "Russian",
-        "ukr": "Ukrainian",
-        "bul": "Bulgarian",
-        "srp": "Serbian",
-        "mkd": "Macedonian",
-        "bel": "Belarusian",
-        "pol": "Polish",
-        "ces": "Czech",
-        "slk": "Slovak",
-        "hrv": "Croatian",
-        "slv": "Slovenian",
+        "rus": "Русский",
+        "ukr": "Украинский",
+        "bul": "Болгарский",
+        "srp": "Сербский",
+        "mkd": "Македонский",
+        "bel": "Белорусский",
+        "pol": "Польский",
+        "ces": "Чешский",
+        "slk": "Словацкий",
+        "hrv": "Хорватский",
+        "slv": "Словенский",
     }
     
     def __init__(self):
-        """Initialize Tesseract engine."""
+        """Инициализировать движок Tesseract."""
         super().__init__("Tesseract OCR")
         self._tesseract_langs: list[str] = []
     
     def _check_availability(self) -> None:
-        """Check if Tesseract is installed and available."""
+        """Проверить установлен ли Tesseract и доступен ли он."""
         try:
             import pytesseract
             from PIL import Image
             
-            # Get available languages
+            # Получить доступные языки
             self._tesseract_langs = pytesseract.get_languages(config='')
             
-            # Check if at least one Slavic language is available
+            # Проверить наличие хотя бы одного славянского языка
             available_slavic = [
                 lang for lang in self.SLAVIC_LANGS.keys() 
                 if lang in self._tesseract_langs
@@ -55,21 +55,21 @@ class TesseractEngine(OCREngine):
     
     def recognize(self, image_path: Path, model_name: Optional[str] = None) -> OCRResult:
         """
-        Perform OCR using Tesseract.
+        Выполнить OCR с помощью Tesseract.
         
         Args:
-            image_path: Path to the image file.
-            model_name: Language code(s) to use (e.g., 'rus', 'rus+eng').
-                       If None, tries to auto-detect available Slavic languages.
+            image_path: Путь к файлу изображения.
+            model_name: Код(ы) языка для использования (например, 'rus', 'rus+eng').
+                       Если None, пытается автоматически определить доступные славянские языки.
             
         Returns:
-            OCRResult with recognized text.
+            OCRResult с распознанным текстом.
         """
         if not self.is_available:
-            raise RuntimeError("Tesseract OCR is not available")
+            raise RuntimeError("Tesseract OCR недоступен")
         
         if not image_path.exists():
-            raise FileNotFoundError(f"Image file not found: {image_path}")
+            raise FileNotFoundError(f"Файл изображения не найден: {image_path}")
         
         start_time = time.time()
         
@@ -77,9 +77,9 @@ class TesseractEngine(OCREngine):
             import pytesseract
             from PIL import Image
             
-            # Determine language
+            # Определить язык
             if model_name is None:
-                # Auto-select first available Slavic language or English
+                # Автовыбор первого доступного славянского языка или английского
                 slavic_available = [
                     lang for lang in self.SLAVIC_LANGS.keys() 
                     if lang in self._tesseract_langs
@@ -91,27 +91,27 @@ class TesseractEngine(OCREngine):
             else:
                 lang = model_name
             
-            # Open image and perform OCR
+            # Открыть изображение и выполнить OCR
             with Image.open(image_path) as img:
-                # Convert to RGB if necessary
+                # Конвертировать в RGB при необходимости
                 if img.mode != 'RGB':
                     img = img.convert('RGB')
                 
                 config = f"--oem 3 --psm 6 -l {lang}"
                 text = pytesseract.image_to_string(img, config=config)
                 
-                # Get confidence data
+                # Получить данные об уверенности
                 data = pytesseract.image_to_data(img, config=config, output_type=pytesseract.Output.DICT)
                 
-                # Calculate average confidence
+                # Вычислить среднюю уверенность
                 confidences = [c for c in data['conf'] if c > -1]
                 avg_confidence = sum(confidences) / len(confidences) if confidences else 0.0
             
-            processing_time = (time.time() - start_time) * 1000  # ms
+            processing_time = (time.time() - start_time) * 1000  # мс
             
             warnings = []
             if avg_confidence < 50:
-                warnings.append("Low confidence score - result may be inaccurate")
+                warnings.append("Низкий показатель уверенности — результат может быть неточным")
             
             return OCRResult(
                 text=text.strip(),
@@ -133,16 +133,16 @@ class TesseractEngine(OCREngine):
                 confidence=0.0,
                 engine_name=self.name,
                 processing_time_ms=processing_time,
-                warnings=[f"OCR failed: {str(e)}"],
+                warnings=[f"OCR не удался: {str(e)}"],
                 metadata={"error": str(e)}
             )
     
     def get_available_models(self) -> list[str]:
-        """Get list of available Tesseract languages."""
+        """Получить список доступных языков Tesseract."""
         if not self.is_available:
             return []
         
-        # Return Slavic languages that are available, plus English
+        # Вернуть доступные славянские языки плюс английский
         available = []
         for lang_code, lang_name in self.SLAVIC_LANGS.items():
             if lang_code in self._tesseract_langs:
@@ -151,4 +151,4 @@ class TesseractEngine(OCREngine):
         if 'eng' in self._tesseract_langs and 'eng' not in [l.split()[0] for l in available]:
             available.append("eng (English)")
         
-        return available if available else ["No Slavic languages installed"]
+        return available if available else ["Славянские языки не установлены"]

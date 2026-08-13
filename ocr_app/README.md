@@ -1,178 +1,178 @@
 # Historical Slavic OCR Application
 
-A GUI application for recognizing historical Slavic texts using multiple OCR engines with advanced image preprocessing.
+Приложение с графическим интерфейсом для распознавания исторических славянских текстов с использованием нескольких OCR-движков и расширенной предобработки изображений.
 
-## Features
+## Возможности
 
-- **Multi-engine support**: 
-  - Tesseract OCR - Fast, universal OCR with Slavic language support
-  - Kraken OCR - Specialized for historical documents and manuscripts
-  - TrOCR - Transformer-based advanced recognition
+- **Поддержка нескольких движков**: 
+  - Tesseract OCR — быстрый универсальный OCR с поддержкой славянских языков
+  - Kraken OCR — специализированный OCR для исторических документов и рукописей
+  - TrOCR — продвинутое распознавание на основе трансформеров
 
-- **Advanced preprocessing**:
-  - Denoising (bilateral filter, non-local means)
-  - Contrast enhancement (CLAHE)
-  - Deskewing
-  - Binarization (Otsu, adaptive thresholding)
-  - Configurable presets for different document types
+- **Расширенная предобработка**:
+  - Шумоподавление (двусторонний фильтр, non-local means)
+  - Улучшение контраста (CLAHE)
+  - Исправление перекоса (deskewing)
+  - Бинаризация (метод Оцу, адаптивная пороговая обработка)
+  - Настраиваемые пресеты для различных типов документов
 
-- **User-friendly GUI**:
-  - Two-panel interface (image preview + text editor)
-  - Image zoom controls
-  - Real-time processing status
-  - Editable OCR results
-  - Export to TXT and DOCX formats
+- **Удобный графический интерфейс**:
+  - Двухпанельный интерфейс (предпросмотр изображения + редактор текста)
+  - Управление масштабированием изображения
+  - Индикация состояния обработки в реальном времени
+  - Редактирование результатов OCR
+  - Экспорт в форматах TXT и DOCX
 
-- **Historical text support**:
-  - Multiple Slavic languages
-  - Old printed texts
-  - Handwritten manuscripts
-  - Low-quality scans
+- **Поддержка исторических текстов**:
+  - Множество славянских языков
+  - Старые печатные тексты
+  - Рукописные манускрипты
+  - Сканы низкого качества
 
-## Installation
+## Установка
 
-### Requirements
+### Требования
 
 - Python 3.9+
 - PySide6
 - Pillow
 - NumPy
-- OpenCV (optional, for advanced preprocessing)
+- OpenCV (опционально, для расширенной предобработки)
 
-### Optional Dependencies
+### Опциональные зависимости
 
-- pytesseract + tesseract-ocr (for Tesseract engine)
-- kraken (for Kraken engine)
-- transformers + torch (for TrOCR engine)
-- python-docx (for DOCX export)
+- pytesseract + tesseract-ocr (для движка Tesseract)
+- kraken (для движка Kraken)
+- transformers + torch (для движка TrOCR)
+- python-docx (для экспорта в DOCX)
 
-### Install Commands
+### Команды установки
 
 ```bash
-# Core dependencies
+# Основные зависимости
 pip install PySide6 Pillow numpy
 
-# Optional: OpenCV for preprocessing
+# Опционально: OpenCV для предобработки
 pip install opencv-python
 
-# Optional: Tesseract OCR
+# Опционально: Tesseract OCR
 pip install pytesseract
-# Also install tesseract-ocr system package:
+# Также установите системный пакет tesseract-ocr:
 # Ubuntu/Debian: sudo apt install tesseract-ocr
 # macOS: brew install tesseract
-# Windows: Download from https://github.com/tesseract-ocr/tesseract
+# Windows: загрузите с https://github.com/tesseract-ocr/tesseract
 
-# Optional: Kraken OCR
+# Опционально: Kraken OCR
 pip install kraken
 
-# Optional: TrOCR (Transformer-based)
+# Опционально: TrOCR (на основе трансформеров)
 pip install transformers torch torchvision
 
-# Optional: DOCX export
+# Опционально: экспорт в DOCX
 pip install python-docx
 ```
 
-## Usage
+## Использование
 
-### Launch the Application
+### Запуск приложения
 
 ```bash
 python -m ocr_app.main
 ```
 
-Or directly:
+Или напрямую:
 
 ```bash
 python ocr_app/main.py
 ```
 
-### Basic Workflow
+### Базовый рабочий процесс
 
-1. **Open Image**: Click "Open" or use File → Open Image
-2. **Select Engine**: Choose from available OCR engines
-3. **Configure Preprocessing**: Select preset or customize options
-4. **Recognize**: Click "Recognize Text" button
-5. **Edit**: Review and edit the recognized text
-6. **Export**: Save as TXT or DOCX
+1. **Открыть изображение**: Нажмите «Open» или используйте File → Open Image
+2. **Выбрать движок**: Выберите один из доступных OCR-движков
+3. **Настроить предобработку**: Выберите пресет или настройте параметры вручную
+4. **Распознать**: Нажмите кнопку «Recognize Text»
+5. **Редактировать**: Проверьте и отредактируйте распознанный текст
+6. **Экспортировать**: Сохраните в формате TXT или DOCX
 
-### Preprocessing Presets
+### Пресеты предобработки
 
-- **Default**: CLAHE + contrast enhancement
-- **Old Printed Text**: Denoise + CLAHE + deskew + enhanced contrast
-- **Handwritten**: NL-means denoise + CLAHE + deskew
-- **Low Quality Scan**: All enhancements enabled
+- **Default** — CLAHE + улучшение контраста
+- **Old Printed Text** — шумоподавление + CLAHE + исправление перекоса + улучшенный контраст
+- **Handwritten** — шумоподавление NL-means + CLAHE + исправление перекоса
+- **Low Quality Scan** — все улучшения включены
 
-## Project Structure
+## Структура проекта
 
 ```
 ocr_app/
-├── __init__.py          # Package info
-├── main.py              # Application entry point
-├── engine/              # OCR engines
+├── __init__.py          # Информация о пакете
+├── main.py              # Точка входа приложения
+├── engine/              # OCR-движки
 │   ├── __init__.py
-│   ├── base.py          # Base classes
+│   ├── base.py          # Базовые классы
 │   ├── tesseract_engine.py
 │   ├── kraken_engine.py
 │   └── trocr_engine.py
-├── preprocessing/       # Image preprocessing
+├── preprocessing/       # Предобработка изображений
 │   ├── __init__.py
-│   ├── processors.py    # Individual processors
-│   └── pipeline.py      # Processing pipeline
-├── gui/                 # Graphical interface
+│   ├── processors.py    # Отдельные процессоры
+│   └── pipeline.py      # Конвейер обработки
+├── gui/                 # Графический интерфейс
 │   ├── __init__.py
-│   ├── main_window.py   # Main window
-│   └── widgets.py       # Custom widgets
+│   ├── main_window.py   # Главное окно
+│   └── widgets.py       # Пользовательские виджеты
 └── data/
-    └── models/          # Custom models directory
+    └── models/          # Директория для пользовательских моделей
 ```
 
-## Architecture
+## Архитектура
 
-The application follows a modular architecture:
+Приложение следует модульной архитектуре:
 
-1. **Engine Layer**: Abstract base class with implementations for each OCR engine
-2. **Preprocessing Layer**: Configurable pipeline of image enhancement processors
-3. **GUI Layer**: PySide6-based interface with custom widgets
-4. **Worker Thread**: Background processing to keep UI responsive
+1. **Слой движков**: Абстрактный базовый класс с реализациями для каждого OCR-движка
+2. **Слой предобработки**: Настраиваемый конвейер процессоров улучшения изображений
+3. **Слой GUI**: Интерфейс на базе PySide6 с пользовательскими виджетами
+4. **Рабочий поток**: Фоновая обработка для поддержания отзывчивости интерфейса
 
-## Supported Formats
+## Поддерживаемые форматы
 
-### Input Images
+### Входные изображения
 - PNG, JPG, JPEG, BMP, TIFF, GIF
 
-### Output
-- TXT (UTF-8 encoded)
+### Выходные файлы
+- TXT (в кодировке UTF-8)
 - DOCX (Microsoft Word)
 
-## Tips for Best Results
+## Советы для лучших результатов
 
-1. **For old printed texts**: Use "Old Printed Text" preset with Tesseract
-2. **For manuscripts**: Use "Handwritten" preset with Kraken or TrOCR
-3. **For low quality scans**: Use "Low Quality Scan" preset
-4. **For mixed content**: Try multiple engines and compare results
+1. **Для старых печатных текстов**: Используйте пресет «Old Printed Text» с Tesseract
+2. **Для рукописей**: Используйте пресет «Handwritten» с Kraken или TrOCR
+3. **Для сканов низкого качества**: Используйте пресет «Low Quality Scan»
+4. **Для смешанного содержимого**: Попробуйте несколько движков и сравните результаты
 
-## Troubleshooting
+## Устранение неполадок
 
-### No engines available
-- Install at least one OCR engine (Tesseract recommended for beginners)
-- Check system PATH for tesseract executable
+### Нет доступных движков
+- Установите хотя бы один OCR-движок (Tesseract рекомендуется для начинающих)
+- Проверьте PATH системы на наличие исполняемого файла tesseract
 
-### Poor recognition quality
-- Try different preprocessing presets
-- Ensure image is not too small (minimum 300 DPI recommended)
-- Try a different OCR engine
+### Низкое качество распознавания
+- Попробуйте различные пресеты предобработки
+- Убедитесь, что изображение не слишком маленькое (рекомендуется минимум 300 DPI)
+- Попробуйте другой OCR-движок
 
-### Memory issues with TrOCR
-- TrOCR models are large; use smaller models for limited RAM
-- Consider using CPU instead of GPU for smaller models
+### Проблемы с памятью при использовании TrOCR
+- Модели TrOCR большие; используйте модели меньшего размера при ограниченной оперативной памяти
+- Рассмотрите использование CPU вместо GPU для небольших моделей
 
-## License
+## Лицензия
 
-This project is provided as-is for educational and research purposes.
+Этот проект предоставляется «как есть» для образовательных и исследовательских целей.
 
-## Contributing
+## Вклад
 
-Contributions welcome! Please ensure:
-- Type hints on all functions
-- Docstrings for all classes and methods
-- Follow existing code style
+Вклады приветствуются! Пожалуйста, убедитесь:
+- Наличие аннотаций типов во всех функциях
+- Наличие docstrings во всех классах и методах
+- Следование существующему стилю кода

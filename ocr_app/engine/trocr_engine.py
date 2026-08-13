@@ -1,6 +1,6 @@
 """
-TrOCR-based OCR engine implementation.
-Uses transformer models for advanced text recognition.
+Реализация OCR-движка на базе TrOCR.
+Использует модели-трансформеры для продвинутого распознавания текста.
 """
 
 import time
@@ -11,29 +11,29 @@ from .base import OCREngine, OCRResult
 
 
 class TrOCREngine(OCREngine):
-    """TrOCR engine for advanced historical text recognition using transformers."""
+    """Движок TrOCR для продвинутого распознавания исторических текстов с использованием трансформеров."""
     
-    # Pre-trained TrOCR models
+    # Предобученные модели TrOCR
     MODELS = {
-        "trocr-small-printed": "Small model for printed text (faster, less accurate)",
-        "trocr-base-printed": "Base model for printed text (balanced)",
-        "trocr-large-printed": "Large model for printed text (slower, more accurate)",
-        "trocr-small-handwritten": "Small model for handwritten text",
-        "trocr-base-handwritten": "Base model for handwritten text",
+        "trocr-small-printed": "Малая модель для печатного текста (быстрее, менее точная)",
+        "trocr-base-printed": "Базовая модель для печатного текста (сбалансированная)",
+        "trocr-large-printed": "Большая модель для печатного текста (медленнее, более точная)",
+        "trocr-small-handwritten": "Малая модель для рукописного текста",
+        "trocr-base-handwritten": "Базовая модель для рукописного текста",
     }
     
     def __init__(self):
-        """Initialize TrOCR engine."""
+        """Инициализировать движок TrOCR."""
         super().__init__("TrOCR (Transformers)")
         self._model_cache: dict = {}
     
     def _check_availability(self) -> None:
-        """Check if required transformers libraries are available."""
+        """Проверить доступность необходимых библиотек transformers."""
         try:
             import torch
             from transformers import TrOCRProcessor, VisionEncoderDecoderModel
             
-            # Check CUDA availability
+            # Проверить доступность CUDA
             self.cuda_available = torch.cuda.is_available()
             self.device = "cuda" if self.cuda_available else "cpu"
             
@@ -46,23 +46,23 @@ class TrOCREngine(OCREngine):
     
     def recognize(self, image_path: Path, model_name: Optional[str] = None) -> OCRResult:
         """
-        Perform OCR using TrOCR.
+        Выполнить OCR с помощью TrOCR.
         
         Args:
-            image_path: Path to the image file.
-            model_name: Model name from Hugging Face. 
-                       If None, uses 'trocr-base-printed'.
+            image_path: Путь к файлу изображения.
+            model_name: Название модели из Hugging Face. 
+                       Если None, использует 'trocr-base-printed'.
             
         Returns:
-            OCRResult with recognized text.
+            OCRResult с распознанным текстом.
         """
         if not self.is_available:
             raise RuntimeError(
-                "TrOCR is not available. Install with: pip install transformers torch torchvision"
+                "TrOCR недоступен. Установите: pip install transformers torch torchvision"
             )
         
         if not image_path.exists():
-            raise FileNotFoundError(f"Image file not found: {image_path}")
+            raise FileNotFoundError(f"Файл изображения не найден: {image_path}")
         
         start_time = time.time()
         
@@ -71,13 +71,13 @@ class TrOCREngine(OCREngine):
             from PIL import Image
             from transformers import TrOCRProcessor, VisionEncoderDecoderModel
             
-            # Default model
+            # Модель по умолчанию
             if model_name is None:
                 model_name = "microsoft/trocr-base-printed"
             elif not model_name.startswith("microsoft/"):
                 model_name = f"microsoft/{model_name}"
             
-            # Load or get from cache
+            # Загрузить или получить из кэша
             cache_key = model_name
             if cache_key not in self._model_cache:
                 processor = TrOCRProcessor.from_pretrained(model_name)
@@ -88,33 +88,33 @@ class TrOCREngine(OCREngine):
             
             processor, model = self._model_cache[cache_key]
             
-            # Open and preprocess image
+            # Открыть и предобработать изображение
             with Image.open(image_path) as img:
                 if img.mode != 'RGB':
                     img = img.convert('RGB')
                 
-                # Process image
+                # Обработать изображение
                 pixel_values = processor(images=img, return_tensors="pt").pixel_values
                 pixel_values = pixel_values.to(self.device)
                 
-                # Generate text
+                # Сгенерировать текст
                 with torch.no_grad():
                     generated_ids = model.generate(pixel_values)
                 
-                # Decode
+                # Декодировать
                 generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
             
-            processing_time = (time.time() - start_time) * 1000  # ms
+            processing_time = (time.time() - start_time) * 1000  # мс
             
-            # Estimate confidence based on text length and generation
-            # TrOCR doesn't provide direct confidence scores
-            confidence = 0.75  # Default moderate confidence
+            # Оценить уверенность на основе длины текста и генерации
+            # TrOCR не предоставляет прямых показателей уверенности
+            confidence = 0.75  # Умеренная уверенность по умолчанию
             if len(generated_text.strip()) == 0:
                 confidence = 0.0
-                warnings = ["No text was recognized"]
+                warnings = ["Текст не был распознан"]
             elif len(generated_text.strip()) < 10:
                 confidence = 0.5
-                warnings = ["Very short text recognized - may be incomplete"]
+                warnings = ["Распознан очень короткий текст — может быть неполным"]
             else:
                 warnings = []
             
@@ -139,12 +139,12 @@ class TrOCREngine(OCREngine):
                 confidence=0.0,
                 engine_name=self.name,
                 processing_time_ms=processing_time,
-                warnings=[f"OCR failed: {str(e)}"],
+                warnings=[f"OCR не удался: {str(e)}"],
                 metadata={"error": str(e)}
             )
     
     def get_available_models(self) -> list[str]:
-        """Get list of available TrOCR models."""
+        """Получить список доступных моделей TrOCR."""
         if not self.is_available:
             return []
         
@@ -152,27 +152,27 @@ class TrOCREngine(OCREngine):
     
     def get_model_description(self, model_name: str) -> str:
         """
-        Get description of a model.
+        Получить описание модели.
         
         Args:
-            model_name: Name of the model.
+            model_name: Название модели.
             
         Returns:
-            Description string.
+            Строка описания.
         """
-        # Try exact match first
+        # Сначала попробовать точное совпадение
         if model_name in self.MODELS:
             return self.MODELS[model_name]
         
-        # Try without prefix
+        # Попробовать без префикса
         for key, value in self.MODELS.items():
             if key.endswith(model_name) or model_name.endswith(key):
                 return value
         
-        return "Custom or unknown model"
+        return "Пользовательская или неизвестная модель"
     
     def clear_cache(self) -> None:
-        """Clear cached models to free memory."""
+        """Очистить кэш моделей для освобождения памяти."""
         import torch
         
         self._model_cache.clear()

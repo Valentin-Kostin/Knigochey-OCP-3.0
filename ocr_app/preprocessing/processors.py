@@ -1,6 +1,6 @@
 """
-Image processing classes for OCR preprocessing.
-Implements various enhancement techniques for historical documents.
+Классы обработки изображений для предобработки OCR.
+Реализует различные техники улучшения для исторических документов.
 """
 
 from abc import ABC, abstractmethod
@@ -15,7 +15,7 @@ from PIL import Image
 
 @dataclass
 class ProcessorConfig:
-    """Configuration for image processors."""
+    """Конфигурация для процессоров изображений."""
     enabled: bool = True
     parameters: dict = None
     
@@ -25,14 +25,14 @@ class ProcessorConfig:
 
 
 class ImageProcessor(ABC):
-    """Abstract base class for image processors."""
+    """Абстрактный базовый класс для процессоров изображений."""
     
     def __init__(self, config: Optional[ProcessorConfig] = None):
         """
-        Initialize the processor.
+        Инициализировать процессор.
         
         Args:
-            config: Processor configuration.
+            config: Конфигурация процессора.
         """
         self.config = config or ProcessorConfig()
         self.name = self.__class__.__name__
@@ -40,25 +40,25 @@ class ImageProcessor(ABC):
     @abstractmethod
     def process(self, image: Image.Image) -> Image.Image:
         """
-        Process an image.
+        Обработать изображение.
         
         Args:
-            image: Input PIL Image.
+            image: Входное PIL Image.
             
         Returns:
-            Processed PIL Image.
+            Обработанное PIL Image.
         """
         pass
     
     def apply(self, image: Image.Image) -> Image.Image:
         """
-        Apply processing if enabled.
+        Применить обработку, если включено.
         
         Args:
-            image: Input PIL Image.
+            image: Входное PIL Image.
             
         Returns:
-            Processed or original PIL Image.
+            Обработанное или исходное PIL Image.
         """
         if self.config.enabled:
             return self.process(image)
@@ -66,12 +66,12 @@ class ImageProcessor(ABC):
 
 
 class DenoiseProcessor(ImageProcessor):
-    """Denoise processor using non-local means or bilateral filtering."""
+    """Процессор шумоподавления с использованием non-local means или двусторонней фильтрации."""
     
     def __init__(self, config: Optional[ProcessorConfig] = None):
-        """Initialize denoise processor."""
+        """Инициализировать процессор шумоподавления."""
         default_params = {
-            "method": "bilateral",  # 'bilateral' or 'nlmeans'
+            "method": "bilateral",  # 'bilateral' или 'nlmeans'
             "strength": 10,
             "template_size": 7,
             "search_window": 21,
@@ -87,21 +87,21 @@ class DenoiseProcessor(ImageProcessor):
     
     def process(self, image: Image.Image) -> Image.Image:
         """
-        Apply denoising to the image.
+        Применить шумоподавление к изображению.
         
         Args:
-            image: Input PIL Image.
+            image: Входное PIL Image.
             
         Returns:
-            Denoised PIL Image.
+            Изображение с шумоподавлением PIL Image.
         """
         try:
             import cv2
             
-            # Convert to numpy array
+            # Конвертировать в numpy массив
             img_array = np.array(image)
             
-            # Convert to BGR for OpenCV if RGB
+            # Конвертировать в BGR для OpenCV, если RGB
             if len(img_array.shape) == 3 and img_array.shape[2] == 3:
                 img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
             
@@ -109,7 +109,7 @@ class DenoiseProcessor(ImageProcessor):
             strength = self.config.parameters.get("strength", 10)
             
             if method == "bilateral":
-                # Bilateral filter - preserves edges
+                # Двусторонний фильтр — сохраняет края
                 d = self.config.parameters.get("template_size", 7)
                 sigma_color = strength
                 sigma_space = strength
@@ -120,7 +120,7 @@ class DenoiseProcessor(ImageProcessor):
                     processed = cv2.bilateralFilter(img_array, d, sigma_color, sigma_space)
             
             elif method == "nlmeans":
-                # Non-local means denoising
+                # Non-local means шумоподавление
                 h = strength
                 template_size = self.config.parameters.get("template_size", 7)
                 search_window = self.config.parameters.get("search_window", 21)
@@ -136,27 +136,27 @@ class DenoiseProcessor(ImageProcessor):
             else:
                 processed = img_array
             
-            # Convert back to RGB if needed
+            # Конвертировать обратно в RGB при необходимости
             if len(processed.shape) == 3 and processed.shape[2] == 3:
                 processed = cv2.cvtColor(processed, cv2.COLOR_BGR2RGB)
             
             return Image.fromarray(processed)
             
         except ImportError:
-            # OpenCV not available, return original
+            # OpenCV недоступен, вернуть исходное
             return image
         except Exception:
-            # Any error, return original
+            # Любая ошибка, вернуть исходное
             return image
 
 
 class BinarizationProcessor(ImageProcessor):
-    """Binarization processor using Otsu or adaptive thresholding."""
+    """Процессор бинаризации с использованием метода Оцу или адаптивной пороговой обработки."""
     
     def __init__(self, config: Optional[ProcessorConfig] = None):
-        """Initialize binarization processor."""
+        """Инициализировать процессор бинаризации."""
         default_params = {
-            "method": "otsu",  # 'otsu', 'adaptive', or 'simple'
+            "method": "otsu",  # 'otsu', 'adaptive' или 'simple'
             "threshold": 127,
             "block_size": 11,
             "c_value": 2,
@@ -172,34 +172,34 @@ class BinarizationProcessor(ImageProcessor):
     
     def process(self, image: Image.Image) -> Image.Image:
         """
-        Apply binarization to the image.
+        Применить бинаризацию к изображению.
         
         Args:
-            image: Input PIL Image.
+            image: Входное PIL Image.
             
         Returns:
-            Binarized PIL Image.
+            Бинаризованное PIL Image.
         """
         try:
             import cv2
             
-            # Convert to grayscale
+            # Конвертировать в оттенки серого
             img_array = np.array(image.convert('L'))
             
             method = self.config.parameters.get("method", "otsu")
             
             if method == "otsu":
-                # Otsu's thresholding
+                # Пороговая обработка Оцу
                 _, processed = cv2.threshold(
                     img_array, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
                 )
             
             elif method == "adaptive":
-                # Adaptive thresholding
+                # Адаптивная пороговая обработка
                 block_size = self.config.parameters.get("block_size", 11)
                 c_value = self.config.parameters.get("c_value", 2)
                 
-                # Block size must be odd
+                # Размер блока должен быть нечётным
                 if block_size % 2 == 0:
                     block_size += 1
                 
@@ -209,7 +209,7 @@ class BinarizationProcessor(ImageProcessor):
                 )
             
             elif method == "simple":
-                # Simple thresholding
+                # Простая пороговая обработка
                 threshold = self.config.parameters.get("threshold", 127)
                 _, processed = cv2.threshold(
                     img_array, threshold, 255, cv2.THRESH_BINARY
@@ -226,10 +226,10 @@ class BinarizationProcessor(ImageProcessor):
 
 
 class CLAHEProcessor(ImageProcessor):
-    """Contrast Limited Adaptive Histogram Equalization processor."""
+    """Процессор ограничения контрастной адаптивной гистограммной эквализации (CLAHE)."""
     
     def __init__(self, config: Optional[ProcessorConfig] = None):
-        """Initialize CLAHE processor."""
+        """Инициализировать процессор CLAHE."""
         default_params = {
             "clip_limit": 2.0,
             "tile_grid_size": (8, 8),
@@ -245,18 +245,18 @@ class CLAHEProcessor(ImageProcessor):
     
     def process(self, image: Image.Image) -> Image.Image:
         """
-        Apply CLAHE to the image.
+        Применить CLAHE к изображению.
         
         Args:
-            image: Input PIL Image.
+            image: Входное PIL Image.
             
         Returns:
-            Enhanced PIL Image.
+            Улучшенное PIL Image.
         """
         try:
             import cv2
             
-            # Convert to grayscale
+            # Конвертировать в оттенки серого
             img_array = np.array(image.convert('L'))
             
             clip_limit = self.config.parameters.get("clip_limit", 2.0)
@@ -274,13 +274,13 @@ class CLAHEProcessor(ImageProcessor):
 
 
 class DeskewProcessor(ImageProcessor):
-    """Deskew processor to correct image rotation."""
+    """Процессор исправления перекоса изображения."""
     
     def __init__(self, config: Optional[ProcessorConfig] = None):
-        """Initialize deskew processor."""
+        """Инициализировать процессор исправления перекоса."""
         default_params = {
             "delta": 1.0,
-            "limit": 5.0,  # Maximum rotation angle in degrees
+            "limit": 5.0,  # Максимальный угол поворота в градусах
         }
         if config is None:
             config = ProcessorConfig(parameters=default_params)
@@ -293,23 +293,23 @@ class DeskewProcessor(ImageProcessor):
     
     def process(self, image: Image.Image) -> Image.Image:
         """
-        Deskew the image by detecting and correcting rotation.
+        Исправить перекос изображения путём обнаружения и коррекции поворота.
         
         Args:
-            image: Input PIL Image.
+            image: Входное PIL Image.
             
         Returns:
-            Deskewed PIL Image.
+            Исправленное PIL Image.
         """
         try:
             import cv2
             
-            # Convert to grayscale
+            # Конвертировать в оттенки серого
             img_array = np.array(image.convert('L'))
             
             limit = self.config.parameters.get("limit", 5.0)
             
-            # Calculate skew angle using moments
+            # Вычислить угол перекоса используя моменты
             coords = np.column_stack(np.where(img_array > 0))
             
             if len(coords) == 0:
@@ -317,21 +317,21 @@ class DeskewProcessor(ImageProcessor):
             
             angle = cv2.minAreaRect(coords)[-1]
             
-            # Adjust angle based on quadrant
+            # Скорректировать угол на основе квадранта
             if angle < -45:
                 angle = -(90 + angle)
             else:
                 angle = -angle
             
-            # Limit the rotation angle
+            # Ограничить угол поворота
             if abs(angle) > limit:
                 angle = limit if angle > 0 else -limit
             
-            # Skip if angle is too small
+            # Пропустить, если угол слишком мал
             if abs(angle) < 0.1:
                 return image
             
-            # Rotate image
+            # Повернуть изображение
             (h, w) = img_array.shape[:2]
             center = (w // 2, h // 2)
             matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
@@ -351,13 +351,13 @@ class DeskewProcessor(ImageProcessor):
 
 
 class ContrastProcessor(ImageProcessor):
-    """Simple contrast enhancement processor."""
+    """Простой процессор улучшения контраста."""
     
     def __init__(self, config: Optional[ProcessorConfig] = None):
-        """Initialize contrast processor."""
+        """Инициализировать процессор контраста."""
         default_params = {
-            "factor": 1.2,  # Contrast factor (>1 increases contrast)
-            "brightness": 0,  # Brightness adjustment
+            "factor": 1.2,  # Фактор контраста (>1 увеличивает контраст)
+            "brightness": 0,  # Регулировка яркости
         }
         if config is None:
             config = ProcessorConfig(parameters=default_params)
@@ -370,24 +370,24 @@ class ContrastProcessor(ImageProcessor):
     
     def process(self, image: Image.Image) -> Image.Image:
         """
-        Enhance contrast of the image.
+        Улучшить контраст изображения.
         
         Args:
-            image: Input PIL Image.
+            image: Входное PIL Image.
             
         Returns:
-            Enhanced PIL Image.
+            Улучшенное PIL Image.
         """
         from PIL import ImageEnhance
         
         factor = self.config.parameters.get("factor", 1.2)
         brightness = self.config.parameters.get("brightness", 0)
         
-        # Apply contrast enhancement
+        # Применить улучшение контраста
         enhancer = ImageEnhance.Contrast(image)
         enhanced = enhancer.enhance(factor)
         
-        # Apply brightness enhancement
+        # Применить улучшение яркости
         if brightness != 0:
             enhancer = ImageEnhance.Brightness(enhanced)
             enhanced = enhancer.enhance(1.0 + brightness / 100.0)

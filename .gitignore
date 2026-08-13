@@ -1,40 +1,33 @@
-```gitignore
+```
 # Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
+*.pyc
+*.pyo
+*.pyd
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual environments
+env/
 venv/
-ENV/
-env.bak/
 .venv/
+.ENV
+.ENV.*
+.venv.bak/
+venv.bak/
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# Build artifacts
+build/
+dist/
+*.egg-info/
 
-# OS
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Logs
+*.log
+
+# OS generated files
 .DS_Store
 Thumbs.db
 ```

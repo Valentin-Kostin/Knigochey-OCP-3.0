@@ -1,6 +1,6 @@
 """
-OCR Engine module for historical Slavic text recognition.
-Supports multiple engines: Tesseract, Kraken, and TrOCR-based models.
+Модуль OCR-движков для распознавания исторических славянских текстов.
+Поддерживает несколько движков: Tesseract, Kraken и модели на базе TrOCR.
 """
 
 from .base import OCREngine, OCRResult
