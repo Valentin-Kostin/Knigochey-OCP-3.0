@@ -50,7 +50,7 @@ class TesseractEngine(OCREngine):
             
             self.is_available = len(available_slavic) > 0 or 'eng' in self._tesseract_langs
             
-        except (ImportError, RuntimeError):
+        except (ImportError, RuntimeError, FileNotFoundError):
             self.is_available = False
     
     def recognize(self, image_path: Path, model_name: Optional[str] = None) -> OCRResult:
