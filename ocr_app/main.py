@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Main entry point for the Historical Slavic OCR Application.
-Launches the GUI application.
+Точка входа для приложения распознавания исторических славянских текстов.
+Запускает графический интерфейс приложения.
 """
 
 import sys
 from pathlib import Path
 
-# Add parent directory to path for imports
+# Добавляем родительскую директорию в путь для импортов
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from PySide6.QtWidgets import QApplication
@@ -18,29 +18,29 @@ from ocr_app.gui.main_window import MainWindow
 
 
 def main():
-    """Main application entry point."""
-    # Enable High DPI scaling
+    """Основная точка входа приложения."""
+    # Включаем масштабирование High DPI
     QApplication.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
     )
     
-    # Create application
+    # Создаём приложение
     app = QApplication(sys.argv)
     app.setApplicationName("Historical Slavic OCR")
     app.setOrganizationName("OCR Team")
     
-    # Set application font
+    # Устанавливаем шрифт приложения
     font = QFont("Segoe UI", 10)
     app.setFont(font)
     
-    # Set style
+    # Устанавливаем стиль
     app.setStyle("Fusion")
     
-    # Create and show main window
+    # Создаём и показываем главное окно
     window = MainWindow()
     window.show()
     
-    # Run application
+    # Запускаем приложение
     sys.exit(app.exec())
 
 

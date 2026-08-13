@@ -1,6 +1,6 @@
 """
-Kraken OCR engine implementation.
-Specialized OCR for historical documents and non-Latin scripts.
+Реализация OCR-движка Kraken.
+Специализированный OCR для исторических документов и не-латинских скриптов.
 """
 
 import time
@@ -11,32 +11,32 @@ from .base import OCREngine, OCRResult
 
 
 class KrakenEngine(OCREngine):
-    """Kraken OCR engine for historical Slavic manuscript recognition."""
+    """OCR-движок Kraken для распознавания исторических славянских рукописей."""
     
-    # Pre-trained models suitable for Slavic historical texts
+    # Предобученные модели, подходящие для славянских исторических текстов
     AVAILABLE_MODELS = {
-        "default": "Default model for Latin script",
-        "fraktur": "Fraktur model for German historical prints",
-        "arabic": "Arabic script model",
+        "default": "Модель по умолчанию для латинского скрипта",
+        "fraktur": "Модель Fraktur для немецких исторических печатных текстов",
+        "arabic": "Модель для арабского скрипта",
     }
     
     def __init__(self):
-        """Initialize Kraken engine."""
+        """Инициализировать движок Kraken."""
         super().__init__("Kraken OCR")
         self._installed_models: list[str] = []
     
     def _check_availability(self) -> None:
-        """Check if Kraken is installed and available."""
+        """Проверить установлен ли Kraken и доступен ли он."""
         try:
             import kraken
             
-            # Try to get version to verify installation
+            # Попытаться получить версию для проверки установки
             self._kraken_version = kraken.__version__
             
-            # List installed models (this may fail if no models installed)
+            # Получить список установленных моделей (может завершиться ошибкой, если модели не установлены)
             try:
                 from kraken import models
-                self._installed_models = ["default"]  # Assume default is available
+                self._installed_models = ["default"]  # Предполагаем, что default доступен
             except Exception:
                 self._installed_models = []
             
@@ -48,20 +48,20 @@ class KrakenEngine(OCREngine):
     
     def recognize(self, image_path: Path, model_name: Optional[str] = None) -> OCRResult:
         """
-        Perform OCR using Kraken.
+        Выполнить OCR с помощью Kraken.
         
         Args:
-            image_path: Path to the image file.
-            model_name: Model name to use. If None, uses default model.
+            image_path: Путь к файлу изображения.
+            model_name: Имя модели для использования. Если None, использует модель по умолчанию.
             
         Returns:
-            OCRResult with recognized text.
+            OCRResult с распознанным текстом.
         """
         if not self.is_available:
-            raise RuntimeError("Kraken OCR is not available. Install with: pip install kraken")
+            raise RuntimeError("Kraken OCR недоступен. Установите: pip install kraken")
         
         if not image_path.exists():
-            raise FileNotFoundError(f"Image file not found: {image_path}")
+            raise FileNotFoundError(f"Файл изображения не найден: {image_path}")
         
         start_time = time.time()
         
@@ -70,14 +70,14 @@ class KrakenEngine(OCREngine):
             from kraken.lib.models import load_model
             from PIL import Image
             
-            # Use default model if none specified
+            # Использовать модель по умолчанию, если не указана
             if model_name is None or model_name == "default":
-                # Load default model
+                # Загрузить модель по умолчанию
                 try:
                     model = load_model('default')
                     actual_model = "default"
                 except Exception:
-                    # If default model not available, create minimal result
+                    # Если модель по умолчанию недоступна, создать минимальный результат
                     processing_time = (time.time() - start_time) * 1000
                     return OCRResult(
                         text="",
@@ -85,18 +85,18 @@ class KrakenEngine(OCREngine):
                         engine_name=self.name,
                         model_name="default",
                         processing_time_ms=processing_time,
-                        warnings=["No Kraken models available. Please train or download a model."],
-                        metadata={"error": "No models available"}
+                        warnings=["Модели Kraken недоступны. Пожалуйста, обучите или загрузите модель."],
+                        metadata={"error": "Нет доступных моделей"}
                     )
             else:
-                # Try to load custom model
+                # Попытаться загрузить пользовательскую модель
                 try:
                     model_path = Path(model_name)
                     if model_path.exists():
                         model = load_model(str(model_path))
                         actual_model = model_path.name
                     else:
-                        raise FileNotFoundError(f"Model file not found: {model_name}")
+                        raise FileNotFoundError(f"Файл модели не найден: {model_name}")
                 except Exception as e:
                     processing_time = (time.time() - start_time) * 1000
                     return OCRResult(
@@ -104,19 +104,19 @@ class KrakenEngine(OCREngine):
                         confidence=0.0,
                         engine_name=self.name,
                         processing_time_ms=processing_time,
-                        warnings=[f"Failed to load model: {str(e)}"],
+                        warnings=[f"Не удалось загрузить модель: {str(e)}"],
                         metadata={"error": str(e)}
                     )
             
-            # Open image
+            # Открыть изображение
             with Image.open(image_path) as img:
                 if img.mode != 'L':
                     img = img.convert('L')
                 
-                # Create predictor
+                # Создать предиктор
                 predictor = rpred.rpred(model, img)
                 
-                # Extract text
+                # Извлечь текст
                 lines = []
                 confidences = []
                 
@@ -129,13 +129,13 @@ class KrakenEngine(OCREngine):
                 text = "\n".join(lines)
                 avg_confidence = sum(confidences) / len(confidences) if confidences else 0.0
             
-            processing_time = (time.time() - start_time) * 1000  # ms
+            processing_time = (time.time() - start_time) * 1000  # мс
             
             warnings = []
             if avg_confidence < 0.5:
-                warnings.append("Low confidence score - result may be inaccurate")
+                warnings.append("Низкий показатель уверенности — результат может быть неточным")
             if not self._installed_models:
-                warnings.append("Using default model. Consider training a custom model for better results.")
+                warnings.append("Используется модель по умолчанию. Рассмотрите возможность обучения собственной модели для лучших результатов.")
             
             return OCRResult(
                 text=text.strip(),
@@ -156,12 +156,12 @@ class KrakenEngine(OCREngine):
                 confidence=0.0,
                 engine_name=self.name,
                 processing_time_ms=processing_time,
-                warnings=[f"OCR failed: {str(e)}"],
+                warnings=[f"OCR не удался: {str(e)}"],
                 metadata={"error": str(e)}
             )
     
     def get_available_models(self) -> list[str]:
-        """Get list of available Kraken models."""
+        """Получить список доступных моделей Kraken."""
         if not self.is_available:
             return []
         
@@ -172,12 +172,12 @@ class KrakenEngine(OCREngine):
     
     def get_model_description(self, model_name: str) -> str:
         """
-        Get description of a model.
+        Получить описание модели.
         
         Args:
-            model_name: Name of the model.
+            model_name: Название модели.
             
         Returns:
-            Description string.
+            Строка описания.
         """
-        return self.AVAILABLE_MODELS.get(model_name, "Unknown model")
+        return self.AVAILABLE_MODELS.get(model_name, "Неизвестная модель")

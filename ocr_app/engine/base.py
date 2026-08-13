@@ -1,6 +1,6 @@
 """
-Base classes for OCR engines.
-Defines the interface that all OCR engines must implement.
+Базовые классы для OCR-движков.
+Определяет интерфейс, который должны реализовывать все OCR-движки.
 """
 
 from abc import ABC, abstractmethod
@@ -11,7 +11,7 @@ from typing import Optional
 
 @dataclass
 class OCRResult:
-    """Result of OCR processing."""
+    """Результат обработки OCR."""
     
     text: str
     confidence: float = 0.0
@@ -22,20 +22,20 @@ class OCRResult:
     metadata: dict = field(default_factory=dict)
     
     def has_warnings(self) -> bool:
-        """Check if there are any warnings."""
+        """Проверить наличие предупреждений."""
         return len(self.warnings) > 0
     
     def get_formatted_text(self) -> str:
-        """Get formatted text with metadata header if present."""
+        """Получить отформатированный текст с заголовком метаданных (если есть)."""
         header_lines = []
         if self.engine_name:
-            header_lines.append(f"Engine: {self.engine_name}")
+            header_lines.append(f"Движок: {self.engine_name}")
         if self.model_name:
-            header_lines.append(f"Model: {self.model_name}")
+            header_lines.append(f"Модель: {self.model_name}")
         if self.confidence > 0:
-            header_lines.append(f"Confidence: {self.confidence:.2%}")
+            header_lines.append(f"Уверенность: {self.confidence:.2%}")
         if self.processing_time_ms > 0:
-            header_lines.append(f"Processing time: {self.processing_time_ms:.2f}ms")
+            header_lines.append(f"Время обработки: {self.processing_time_ms:.2f}мс")
         
         if header_lines:
             return "\n".join(header_lines) + "\n\n" + self.text
@@ -43,14 +43,14 @@ class OCRResult:
 
 
 class OCREngine(ABC):
-    """Abstract base class for OCR engines."""
+    """Абстрактный базовый класс для OCR-движков."""
     
     def __init__(self, name: str):
         """
-        Initialize the OCR engine.
+        Инициализировать OCR-движок.
         
         Args:
-            name: Human-readable name of the engine.
+            name: Человекочитаемое название движка.
         """
         self.name = name
         self.is_available = False
@@ -58,37 +58,37 @@ class OCREngine(ABC):
     
     @abstractmethod
     def _check_availability(self) -> None:
-        """Check if the engine is available and set is_available flag."""
+        """Проверить доступность движка и установить флаг is_available."""
         pass
     
     @abstractmethod
     def recognize(self, image_path: Path, model_name: Optional[str] = None) -> OCRResult:
         """
-        Perform OCR on an image.
+        Выполнить OCR на изображении.
         
         Args:
-            image_path: Path to the image file.
-            model_name: Optional model name to use (engine-specific).
+            image_path: Путь к файлу изображения.
+            model_name: Опциональное имя модели для использования (зависит от движка).
             
         Returns:
-            OCRResult with recognized text and metadata.
+            OCRResult с распознанным текстом и метаданными.
             
         Raises:
-            FileNotFoundError: If image file doesn't exist.
-            RuntimeError: If engine is not available.
+            FileNotFoundError: Если файл изображения не найден.
+            RuntimeError: Если движок недоступен.
         """
         pass
     
     @abstractmethod
     def get_available_models(self) -> list[str]:
         """
-        Get list of available models for this engine.
+        Получить список доступных моделей для этого движка.
         
         Returns:
-            List of model names.
+            Список названий моделей.
         """
         pass
     
     def is_ready(self) -> bool:
-        """Check if engine is ready to use."""
+        """Проверить готовность движка к использованию."""
         return self.is_available

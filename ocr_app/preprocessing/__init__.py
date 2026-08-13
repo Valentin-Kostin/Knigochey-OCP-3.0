@@ -1,6 +1,6 @@
 """
-Image preprocessing module for OCR.
-Provides various image enhancement techniques for historical documents.
+Модуль предобработки изображений для OCR.
+Предоставляет различные техники улучшения изображений для исторических документов.
 """
 
 from .processors import (
