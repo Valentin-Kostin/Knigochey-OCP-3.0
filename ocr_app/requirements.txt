@@ -1,0 +1,21 @@
+# Core dependencies
+PySide6>=6.5.0
+Pillow>=9.0.0
+numpy>=1.21.0
+
+# Optional: Advanced image preprocessing
+opencv-python>=4.5.0
+
+# Optional: Tesseract OCR engine
+pytesseract>=0.3.0
+
+# Optional: Kraken OCR engine
+# kraken>=4.0.0
+
+# Optional: TrOCR engine (Transformer-based)
+# transformers>=4.20.0
+# torch>=1.12.0
+# torchvision>=0.13.0
+
+# Optional: DOCX export
+# python-docx>=0.8.0
