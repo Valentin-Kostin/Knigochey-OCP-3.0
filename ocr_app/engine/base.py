@@ -54,7 +54,15 @@ class OCREngine(ABC):
         """
         self.name = name
         self.is_available = False
-        self._check_availability()
+        self._availability_checked = False
+        # Не проверяем доступность сразу при инициализации, чтобы приложение могло запуститься
+        # Проверка будет выполнена при первом вызове _ensure_availability() или recognize()
+    
+    def _ensure_availability(self) -> None:
+        """Убедиться, что доступность проверена, выполнив проверку если еще не была сделана."""
+        if not self._availability_checked:
+            self._check_availability()
+            self._availability_checked = True
     
     @abstractmethod
     def _check_availability(self) -> None:
@@ -89,6 +97,13 @@ class OCREngine(ABC):
         """
         pass
     
+    def _ensure_availability(self) -> None:
+        """Убедиться, что доступность проверена, выполнив проверку если еще не была сделана."""
+        if not self._availability_checked:
+            self._check_availability()
+            self._availability_checked = True
+    
     def is_ready(self) -> bool:
         """Проверить готовность движка к использованию."""
+        self._ensure_availability()
         return self.is_available

@@ -1,6 +1,6 @@
 """
-GUI module for the OCR application.
-Provides the main window and widgets using PySide6.
+Модуль графического интерфейса для OCR-приложения.
+Предоставляет главное окно и виджеты с использованием PySide6.
 """
 
 from .main_window import MainWindow
