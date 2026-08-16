@@ -26,6 +26,7 @@ class TrOCREngine(OCREngine):
         """Инициализировать движок TrOCR."""
         super().__init__("TrOCR (Transformers)")
         self._model_cache: dict = {}
+        self._preferred_device: str = "auto"  # "auto", "cpu", или "cuda"
     
     def _check_availability(self) -> None:
         """Проверить доступность необходимых библиотек transformers."""
@@ -35,7 +36,14 @@ class TrOCREngine(OCREngine):
             
             # Проверить доступность CUDA
             self.cuda_available = torch.cuda.is_available()
-            self.device = "cuda" if self.cuda_available else "cpu"
+            
+            # Использовать предпочтительное устройство, если задано
+            if self._preferred_device == "cuda" and self.cuda_available:
+                self.device = "cuda"
+            elif self._preferred_device == "cpu":
+                self.device = "cpu"
+            else:  # "auto" или по умолчанию
+                self.device = "cuda" if self.cuda_available else "cpu"
             
             self.is_available = True
             
@@ -43,6 +51,17 @@ class TrOCREngine(OCREngine):
             self.is_available = False
             self.cuda_available = False
             self.device = "cpu"
+    
+    def set_device(self, device: str) -> None:
+        """
+        Установить предпочтительное устройство для вычислений.
+        
+        Args:
+            device: "cpu", "cuda", или "auto" для автоматического выбора.
+        """
+        self._preferred_device = device
+        # Перебросить флаг доступности, чтобы проверка выполнилась снова с новым устройством
+        self._availability_checked = False
     
     def recognize(self, image_path: Path, model_name: Optional[str] = None) -> OCRResult:
         """

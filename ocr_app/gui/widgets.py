@@ -300,6 +300,7 @@ class EngineSelectorWidget(QGroupBox):
     
     engine_changed = Signal(str)  # Испускает имя движка
     model_changed = Signal(str)   # Испускает имя модели
+    device_changed = Signal(str)  # Испускает выбранное устройство (cpu/cuda)
     
     def __init__(self, parent: Optional[QWidget] = None):
         """Инициализировать виджет выбора движка."""
@@ -330,6 +331,21 @@ class EngineSelectorWidget(QGroupBox):
         model_layout.addStretch()
         
         layout.addLayout(model_layout)
+        
+        # Выбор устройства (CPU/GPU)
+        device_layout = QHBoxLayout()
+        device_layout.addWidget(QLabel("Устройство:"))
+        
+        self._device_combo = QComboBox()
+        self._device_combo.addItem("Авто (CUDA если доступно)", "auto")
+        self._device_combo.addItem("CPU (Процессор)", "cpu")
+        self._device_combo.addItem("GPU (CUDA)", "cuda")
+        self._device_combo.setMinimumWidth(200)
+        self._device_combo.currentTextChanged.connect(self._on_device_changed)
+        device_layout.addWidget(self._device_combo)
+        device_layout.addStretch()
+        
+        layout.addLayout(device_layout)
         
         # Статус движка
         self._status_label = QLabel("Статус: Не инициализирован")
@@ -398,6 +414,10 @@ class EngineSelectorWidget(QGroupBox):
             return None
         return self._model_combo.currentText()
     
+    def get_selected_device(self) -> str:
+        """Получить выбранное устройство (cpu/cuda/auto)."""
+        return self._device_combo.currentData()
+    
     def _on_engine_changed(self, engine_name: str) -> None:
         """Обработать изменение выбора движка."""
         # Удалить галочку из отображения
@@ -408,6 +428,11 @@ class EngineSelectorWidget(QGroupBox):
         """Обработать изменение выбора модели."""
         if model_name != "Нет доступных моделей":
             self.model_changed.emit(model_name)
+    
+    def _on_device_changed(self, device_name: str) -> None:
+        """Обработать изменение выбора устройства."""
+        device_data = self._device_combo.currentData()
+        self.device_changed.emit(device_data)
 
 
 class PreprocessingOptionsWidget(QGroupBox):

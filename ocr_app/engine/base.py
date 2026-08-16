@@ -55,6 +55,8 @@ class OCREngine(ABC):
         self.name = name
         self.is_available = False
         self._availability_checked = False
+        self.device = "cpu"  # По умолчанию CPU
+        self.cuda_available = False
         # Не проверяем доступность сразу при инициализации, чтобы приложение могло запуститься
         # Проверка будет выполнена при первом вызове _ensure_availability() или recognize()
     
@@ -107,3 +109,20 @@ class OCREngine(ABC):
         """Проверить готовность движка к использованию."""
         self._ensure_availability()
         return self.is_available
+    
+    def set_device(self, device: str) -> None:
+        """
+        Установить предпочтительное устройство для вычислений.
+        Базовая реализация ничего не делает, переопределяется в движках, которые поддерживают GPU.
+        
+        Args:
+            device: "cpu", "cuda", или "auto" для автоматического выбора.
+        """
+        # Базовая реализация по умолчанию устанавливает CPU
+        # Движки с поддержкой GPU должны переопределить этот метод
+        if device == "cuda":
+            # Если явно запрошен CUDA, но движок не поддерживает - предупредить
+            import warnings
+            warnings.warn(f"Движок {self.name} не поддерживает GPU, используется CPU")
+        self.device = "cpu" if device != "cuda" else "cpu"
+        self.cuda_available = False
