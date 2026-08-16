@@ -31,14 +31,7 @@ class KrakenEngine(OCREngine):
             import kraken
             
             # Попытаться получить версию для проверки установки
-            try:
-                self._kraken_version = kraken.__version__
-            except AttributeError:
-                from importlib.metadata import version as get_package_version
-                try:
-                    self._kraken_version = get_package_version("kraken")
-                except Exception:
-                    self._kraken_version = "7.1"
+            self._kraken_version = kraken.__version__
             
             # Получить список установленных моделей (может завершиться ошибкой, если модели не установлены)
             try:
