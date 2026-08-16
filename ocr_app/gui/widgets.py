@@ -258,10 +258,10 @@ class TextEditorWidget(QTextEdit):
         """Инициализировать виджет текстового редактора."""
         super().__init__(parent)
         
-        # Установить моноширинный шрифт для лучшей читаемости
-        font = QFont("Courier New", 11)
-        font.setStyleHint(QFont.StyleHint.Monospace)
-        self.setFont(font)
+        # Установить моноширинный шрифт по умолчанию для лучшей читаемости
+        self._default_font = QFont("Courier New", 11)
+        self._default_font.setStyleHint(QFont.StyleHint.Monospace)
+        self.setFont(self._default_font)
         
         # Включить перенос строк
         self.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
@@ -271,6 +271,148 @@ class TextEditorWidget(QTextEdit):
         
         # Подключить сигнал
         self.textChanged.connect(self.text_changed.emit)
+        
+        # Создать основной макет с панелью инструментов
+        self._setup_with_toolbar()
+    
+    def _setup_with_toolbar(self) -> None:
+        """Настроить виджет с панелью инструментов шрифтов."""
+        # Основной вертикальный макет
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+        
+        # Панель инструментов шрифтов
+        font_toolbar = QWidget()
+        font_layout = QHBoxLayout(font_toolbar)
+        font_layout.setContentsMargins(0, 0, 0, 5)
+        font_layout.setSpacing(5)
+        
+        # Выбор шрифта
+        font_layout.addWidget(QLabel("Шрифт:"))
+        self._font_combo = QComboBox()
+        self._font_combo.setEditable(True)
+        self._font_combo.setMinimumWidth(150)
+        # Популярные шрифты
+        common_fonts = [
+            "Courier New", "Consolas", "Lucida Console", "Monaco",  # Моноширинные
+            "Arial", "Helvetica", "Verdana", "Tahoma",  # Без засечек
+            "Times New Roman", "Georgia", "Palatino", "Garamond"  # С засечками
+        ]
+        for font_name in common_fonts:
+            self._font_combo.addItem(font_name)
+        self._font_combo.setCurrentText("Courier New")
+        self._font_combo.currentTextChanged.connect(self._on_font_changed)
+        font_layout.addWidget(self._font_combo)
+        
+        # Размер шрифта
+        font_layout.addWidget(QLabel("Размер:"))
+        self._font_size_spin = QSpinBox()
+        self._font_size_spin.setMinimum(6)
+        self._font_size_spin.setMaximum(72)
+        self._font_size_spin.setValue(11)
+        self._font_size_spin.setFixedWidth(60)
+        self._font_size_spin.valueChanged.connect(self._on_font_size_changed)
+        font_layout.addWidget(self._font_size_spin)
+        
+        # Кнопки форматирования
+        self._bold_btn = QPushButton("B")
+        self._bold_btn.setToolTip("Жирный")
+        self._bold_btn.setCheckable(True)
+        self._bold_btn.setFont(QFont(self._default_font.family(), self._default_font.pointSize(), QFont.Weight.Bold))
+        self._bold_btn.clicked.connect(self._on_bold_clicked)
+        font_layout.addWidget(self._bold_btn)
+        
+        self._italic_btn = QPushButton("I")
+        self._italic_btn.setToolTip("Курсив")
+        self._italic_btn.setCheckable(True)
+        self._italic_btn.setFont(QFont(self._default_font.family(), self._default_font.pointSize(), QFont.Weight.Normal, True))
+        self._italic_btn.clicked.connect(self._on_italic_clicked)
+        font_layout.addWidget(self._italic_btn)
+        
+        self._underline_btn = QPushButton("U")
+        self._underline_btn.setToolTip("Подчёркнутый")
+        self._underline_btn.setCheckable(True)
+        underline_font = QFont(self._default_font.family(), self._default_font.pointSize())
+        underline_font.setUnderline(True)
+        self._underline_btn.setFont(underline_font)
+        self._underline_btn.clicked.connect(self._on_underline_clicked)
+        font_layout.addWidget(self._underline_btn)
+        
+        font_layout.addStretch()
+        
+        # Добавить панель инструментов и текстовый редактор в основной макет
+        main_layout.addWidget(font_toolbar)
+        main_layout.addWidget(self)
+    
+    def _setup_font_toolbar(self) -> None:
+        """Настроить панель инструментов для работы со шрифтами."""
+        # Панель инструментов шрифтов
+        font_toolbar = QWidget()
+        font_layout = QHBoxLayout(font_toolbar)
+        font_layout.setContentsMargins(0, 0, 0, 5)
+        font_layout.setSpacing(5)
+        
+        # Выбор шрифта
+        font_layout.addWidget(QLabel("Шрифт:"))
+        self._font_combo = QComboBox()
+        self._font_combo.setEditable(True)
+        self._font_combo.setMinimumWidth(150)
+        # Популярные шрифты
+        common_fonts = [
+            "Courier New", "Consolas", "Lucida Console", "Monaco",  # Моноширинные
+            "Arial", "Helvetica", "Verdana", "Tahoma",  # Без засечек
+            "Times New Roman", "Georgia", "Palatino", "Garamond"  # С засечками
+        ]
+        for font_name in common_fonts:
+            self._font_combo.addItem(font_name)
+        self._font_combo.setCurrentText("Courier New")
+        self._font_combo.currentTextChanged.connect(self._on_font_changed)
+        font_layout.addWidget(self._font_combo)
+        
+        # Размер шрифта
+        font_layout.addWidget(QLabel("Размер:"))
+        self._font_size_spin = QSpinBox()
+        self._font_size_spin.setMinimum(6)
+        self._font_size_spin.setMaximum(72)
+        self._font_size_spin.setValue(11)
+        self._font_size_spin.setFixedWidth(60)
+        self._font_size_spin.valueChanged.connect(self._on_font_size_changed)
+        font_layout.addWidget(self._font_size_spin)
+        
+        # Кнопки форматирования
+        self._bold_btn = QPushButton("B")
+        self._bold_btn.setToolTip("Жирный")
+        self._bold_btn.setCheckable(True)
+        self._bold_btn.setFont(QFont(self._default_font.family(), self._default_font.pointSize(), QFont.Weight.Bold))
+        self._bold_btn.clicked.connect(self._on_bold_clicked)
+        font_layout.addWidget(self._bold_btn)
+        
+        self._italic_btn = QPushButton("I")
+        self._italic_btn.setToolTip("Курсив")
+        self._italic_btn.setCheckable(True)
+        self._italic_btn.setFont(QFont(self._default_font.family(), self._default_font.pointSize(), QFont.Weight.Normal, True))
+        self._italic_btn.clicked.connect(self._on_italic_clicked)
+        font_layout.addWidget(self._italic_btn)
+        
+        self._underline_btn = QPushButton("U")
+        self._underline_btn.setToolTip("Подчёркнутый")
+        self._underline_btn.setCheckable(True)
+        underline_font = QFont(self._default_font.family(), self._default_font.pointSize())
+        underline_font.setUnderline(True)
+        self._underline_btn.setFont(underline_font)
+        self._underline_btn.clicked.connect(self._on_underline_clicked)
+        font_layout.addWidget(self._underline_btn)
+        
+        font_layout.addStretch()
+        
+        # Добавить панель инструментов и текстовый редактор в основной макет
+        main_layout.addWidget(font_toolbar)
+        main_layout.addWidget(self)
+    
+    def _setup_font_toolbar_old(self) -> None:
+        """Устаревший метод настройки панели инструментов (оставлен для совместимости)."""
+        pass  # Больше не используется
     
     def set_result_text(self, text: str, metadata: Optional[str] = None) -> None:
         """
@@ -293,6 +435,53 @@ class TextEditorWidget(QTextEdit):
     def get_text(self) -> str:
         """Получить текущее содержимое текста."""
         return self.toPlainText()
+    
+    def _on_font_changed(self, font_name: str) -> None:
+        """Обработать изменение шрифта."""
+        current_format = self.currentCharFormat()
+        new_font = current_format.font()
+        new_font.setFamily(font_name)
+        current_format.setFont(new_font)
+        self.setCurrentCharFormat(current_format)
+        # Также обновляем шрифт для нового текста
+        self.setFont(new_font)
+    
+    def _on_font_size_changed(self, size: int) -> None:
+        """Обработать изменение размера шрифта."""
+        current_format = self.currentCharFormat()
+        new_font = current_format.font()
+        new_font.setPointSize(size)
+        current_format.setFont(new_font)
+        self.setCurrentCharFormat(current_format)
+        # Также обновляем размер шрифта для нового текста
+        self.setFont(new_font)
+    
+    def _on_bold_clicked(self, checked: bool) -> None:
+        """Обработать нажатие кнопки жирного шрифта."""
+        fmt = self.currentCharFormat()
+        font = fmt.font()
+        font.setBold(checked)
+        fmt.setFont(font)
+        self.setCurrentCharFormat(fmt)
+        self._bold_btn.setChecked(checked)
+    
+    def _on_italic_clicked(self, checked: bool) -> None:
+        """Обработать нажатие кнопки курсива."""
+        fmt = self.currentCharFormat()
+        font = fmt.font()
+        font.setItalic(checked)
+        fmt.setFont(font)
+        self.setCurrentCharFormat(fmt)
+        self._italic_btn.setChecked(checked)
+    
+    def _on_underline_clicked(self, checked: bool) -> None:
+        """Обработать нажатие кнопки подчёркивания."""
+        fmt = self.currentCharFormat()
+        font = fmt.font()
+        font.setUnderline(checked)
+        fmt.setFont(font)
+        self.setCurrentCharFormat(fmt)
+        self._underline_btn.setChecked(checked)
 
 
 class EngineSelectorWidget(QGroupBox):
