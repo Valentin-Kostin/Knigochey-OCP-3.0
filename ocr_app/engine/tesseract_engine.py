@@ -28,10 +28,24 @@ class TesseractEngine(OCREngine):
         "slv": "Словенский",
     }
     
-    def __init__(self):
-        """Инициализировать движок Tesseract."""
+    def __init__(self, tesseract_path: str = ""):
+        """
+        Инициализировать движок Tesseract.
+        
+        Args:
+            tesseract_path: Путь к исполняемому файлу tesseract.exe (опционально).
+        """
         super().__init__("Tesseract OCR")
         self._tesseract_langs: list[str] = []
+        self._tesseract_path = tesseract_path
+        
+        # Установить путь если указан
+        if tesseract_path:
+            try:
+                import pytesseract
+                pytesseract.pytesseract.tesseract_cmd = tesseract_path
+            except Exception:
+                pass  # Обработаем при проверке доступности
     
     def _check_availability(self) -> None:
         """Проверить установлен ли Tesseract и доступен ли он."""

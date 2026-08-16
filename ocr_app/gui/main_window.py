@@ -30,6 +30,7 @@ from PySide6.QtCore import Qt, QThread, Signal
 
 from ..engine import OCREngine, OCRResult, TesseractEngine, KrakenEngine, TrOCREngine, CSLAVEngine
 from ..preprocessing import PreprocessingPipeline, PipelineConfig
+from ..utils import ConfigManager
 from .widgets import (
     ImagePreviewWidget,
     TextEditorWidget,
@@ -37,6 +38,7 @@ from .widgets import (
     PreprocessingOptionsWidget,
     StatusBarWidget,
 )
+from .settings_dialog import SettingsDialog
 
 
 class OCRWorker(QThread):
@@ -110,11 +112,20 @@ class MainWindow(QMainWindow):
         super().__init__()
         
         self.setWindowTitle("Historical Slavic OCR")
-        self.setMinimumSize(1200, 800)
         
-        # Инициализировать движки
+        # Загрузить конфигурацию
+        self.config = ConfigManager()
+        
+        # Установить размер окна из конфигурации
+        self.resize(
+            self.config.get_window_width(),
+            self.config.get_window_height()
+        )
+        
+        # Инициализировать движки с путём к Tesseract из конфигурации
+        tesseract_path = self.config.get_tesseract_path()
         self._engines: dict[str, OCREngine] = {
-            "tesseract": TesseractEngine(),
+            "tesseract": TesseractEngine(tesseract_path),
             "kraken": KrakenEngine(),
             "trocr": TrOCREngine(),
             "cslav": CSLAVEngine(),
@@ -266,6 +277,14 @@ class MainWindow(QMainWindow):
         reset_zoom_action.setShortcut(QKeySequence("Ctrl+0"))
         reset_zoom_action.triggered.connect(lambda: setattr(self._image_preview, '_zoom_factor', 1.0) or self._image_preview._update_display())
         view_menu.addAction(reset_zoom_action)
+        
+        # Меню Настройки
+        settings_menu = menubar.addMenu("&Настройки")
+        
+        settings_action = QAction("&Параметры...", self)
+        settings_action.setShortcut(QKeySequence("Ctrl+,"))
+        settings_action.triggered.connect(self._show_settings)
+        settings_menu.addAction(settings_action)
         
         # Меню Справка
         help_menu = menubar.addMenu("&Справка")
@@ -603,3 +622,16 @@ class MainWindow(QMainWindow):
             "• Экспорт в форматы TXT и DOCX\n\n"
             "© 2024"
         )
+
+    def _show_settings(self) -> None:
+        """Показать диалог настроек."""
+        dialog = SettingsDialog(self.config, self)
+        if dialog.exec():
+            # После сохранения настроек нужно переинициализировать движок Tesseract
+            tesseract_path = self.config.get_tesseract_path()
+            self._engines["tesseract"] = TesseractEngine(tesseract_path)
+            
+            # Обновить выбор движка чтобы отразить изменения в доступности
+            self._update_engine_selector()
+            
+            self._status_bar.set_message("Настройки сохранены")

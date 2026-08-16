@@ -11,6 +11,7 @@ from .widgets import (
     PreprocessingOptionsWidget,
     StatusBarWidget,
 )
+from .settings_dialog import SettingsDialog
 
 __all__ = [
     "MainWindow",
@@ -19,4 +20,5 @@ __all__ = [
     "EngineSelectorWidget",
     "PreprocessingOptionsWidget",
     "StatusBarWidget",
+    "SettingsDialog",
 ]
