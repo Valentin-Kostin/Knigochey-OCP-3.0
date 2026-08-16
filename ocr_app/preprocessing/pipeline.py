@@ -15,6 +15,7 @@ from .processors import (
     BinarizationProcessor,
     CLAHEProcessor,
     DeskewProcessor,
+    OrientationProcessor,
     ContrastProcessor,
     ProcessorConfig,
 )
@@ -26,6 +27,7 @@ class PipelineConfig:
     
     denoise: ProcessorConfig = field(default_factory=lambda: ProcessorConfig(enabled=False))
     clahe: ProcessorConfig = field(default_factory=lambda: ProcessorConfig(enabled=True))
+    orientation: ProcessorConfig = field(default_factory=lambda: ProcessorConfig(enabled=True))
     deskew: ProcessorConfig = field(default_factory=lambda: ProcessorConfig(enabled=False))
     contrast: ProcessorConfig = field(default_factory=lambda: ProcessorConfig(enabled=True))
     binarization: ProcessorConfig = field(default_factory=lambda: ProcessorConfig(enabled=False))
@@ -36,6 +38,7 @@ class PipelineConfig:
         return cls(
             denoise=ProcessorConfig(enabled=False),
             clahe=ProcessorConfig(enabled=True, parameters={"clip_limit": 2.0}),
+            orientation=ProcessorConfig(enabled=True),
             deskew=ProcessorConfig(enabled=True, parameters={"limit": 5.0}),
             contrast=ProcessorConfig(enabled=True, parameters={"factor": 1.2}),
             binarization=ProcessorConfig(enabled=False),
@@ -47,6 +50,7 @@ class PipelineConfig:
         return cls(
             denoise=ProcessorConfig(enabled=True, parameters={"method": "bilateral", "strength": 5}),
             clahe=ProcessorConfig(enabled=True, parameters={"clip_limit": 3.0}),
+            orientation=ProcessorConfig(enabled=True),
             deskew=ProcessorConfig(enabled=True),
             contrast=ProcessorConfig(enabled=True, parameters={"factor": 1.5}),
             binarization=ProcessorConfig(enabled=False),
@@ -58,6 +62,7 @@ class PipelineConfig:
         return cls(
             denoise=ProcessorConfig(enabled=True, parameters={"method": "nlmeans", "strength": 8}),
             clahe=ProcessorConfig(enabled=True, parameters={"clip_limit": 2.5}),
+            orientation=ProcessorConfig(enabled=True),
             deskew=ProcessorConfig(enabled=True, parameters={"limit": 10.0}),
             contrast=ProcessorConfig(enabled=True, parameters={"factor": 1.3}),
             binarization=ProcessorConfig(enabled=False),
@@ -69,6 +74,7 @@ class PipelineConfig:
         return cls(
             denoise=ProcessorConfig(enabled=True, parameters={"method": "nlmeans", "strength": 15}),
             clahe=ProcessorConfig(enabled=True, parameters={"clip_limit": 4.0}),
+            orientation=ProcessorConfig(enabled=True),
             deskew=ProcessorConfig(enabled=True, parameters={"limit": 15.0}),
             contrast=ProcessorConfig(enabled=True, parameters={"factor": 1.8, "brightness": 10}),
             binarization=ProcessorConfig(enabled=True, parameters={"method": "adaptive"}),
@@ -97,7 +103,10 @@ class PreprocessingPipeline:
         """Построить цепочку процессоров на основе конфигурации."""
         self._processors = []
         
-        # Порядок важен: сначала шумоподавление, затем улучшения, потом бинаризация
+        # Порядок важен: сначала ориентация, потом шумоподавление, затем улучшения, потом бинаризация
+        if self.config.orientation.enabled:
+            self._processors.append(OrientationProcessor(self.config.orientation))
+        
         if self.config.denoise.enabled:
             self._processors.append(DenoiseProcessor(self.config.denoise))
         
