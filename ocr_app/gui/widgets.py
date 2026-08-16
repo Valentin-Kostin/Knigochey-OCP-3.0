@@ -199,7 +199,7 @@ class ImagePreviewWidget(QFrame):
         else:
             new_size = rotated_pixmap.size() * self._zoom_factor
             self._pixmap = rotated_pixmap.scaled(
-                new_size.toSize(),
+                new_size,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation
             )
