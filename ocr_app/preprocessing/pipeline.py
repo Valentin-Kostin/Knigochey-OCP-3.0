@@ -36,7 +36,7 @@ class PipelineConfig:
         return cls(
             denoise=ProcessorConfig(enabled=False),
             clahe=ProcessorConfig(enabled=True, parameters={"clip_limit": 2.0}),
-            deskew=ProcessorConfig(enabled=False),
+            deskew=ProcessorConfig(enabled=True, parameters={"limit": 5.0}),
             contrast=ProcessorConfig(enabled=True, parameters={"factor": 1.2}),
             binarization=ProcessorConfig(enabled=False),
         )
