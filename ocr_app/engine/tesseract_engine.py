@@ -66,6 +66,7 @@ class TesseractEngine(OCREngine):
             
         except (ImportError, RuntimeError, FileNotFoundError):
             self.is_available = False
+            self._tesseract_langs = []
     
     def recognize(self, image_path: Path, model_name: Optional[str] = None) -> OCRResult:
         """

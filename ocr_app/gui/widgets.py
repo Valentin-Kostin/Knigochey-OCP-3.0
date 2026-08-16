@@ -278,7 +278,7 @@ class TextEditorWidget(QTextEdit):
     def _setup_with_toolbar(self) -> None:
         """Настроить виджет с панелью инструментов шрифтов."""
         # Основной вертикальный макет
-        main_layout = QVBoxLayout(self)
+        main_layout = QVBoxLayout()
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         
@@ -344,6 +344,9 @@ class TextEditorWidget(QTextEdit):
         # Добавить панель инструментов и текстовый редактор в основной макет
         main_layout.addWidget(font_toolbar)
         main_layout.addWidget(self)
+        
+        # Установить макет виджету
+        self.setLayout(main_layout)
     
     def _setup_font_toolbar(self) -> None:
         """Настроить панель инструментов для работы со шрифтами."""
