@@ -384,6 +384,21 @@ class MainWindow(QMainWindow):
         self._process_btn.setEnabled(True)
         self._status_bar.set_message(f"Загружено: {Path(image_path).name}")
         self._status_bar.set_info(f"Размер: {self._image_preview._original_pixmap.width()}x{self._image_preview._original_pixmap.height()}px")
+        
+        # Применить предобработку сразу для отображения выровненного изображения
+        if self._current_pipeline:
+            try:
+                with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+                    tmp_path = Path(tmp.name)
+                
+                processed_image = self._current_pipeline.process_file(self._current_image_path, tmp_path)
+                self._processed_image_path = tmp_path
+                # Обновить предпросмотр выровненным изображением
+                self._image_preview.load_image(self._processed_image_path)
+                self._status_bar.set_message(f"Изображение выровнено: {self._current_image_path.name}")
+            except Exception:
+                # Если ошибка, оставить оригинальное изображение
+                pass
     
     def _open_image(self) -> None:
         """Открыть диалог выбора файла изображения."""
