@@ -304,6 +304,7 @@ class MainWindow(QMainWindow):
         # Выбор движка
         self._engine_selector.engine_changed.connect(self._on_engine_changed)
         self._engine_selector.model_changed.connect(self._on_model_changed)
+        self._engine_selector.device_changed.connect(self._on_device_changed)
         
         # Параметры предобработки
         self._preprocessing_options.options_changed.connect(self._on_preprocessing_changed)
@@ -347,6 +348,15 @@ class MainWindow(QMainWindow):
     def _on_model_changed(self, model_name: str) -> None:
         """Обработать изменение выбора модели."""
         pass  # Модель используется во время выполнения OCR
+    
+    def _on_device_changed(self, device: str) -> None:
+        """Обработать изменение выбора устройства (CPU/GPU)."""
+        if self._current_engine and hasattr(self._current_engine, 'set_device'):
+            self._current_engine.set_device(device)
+            # Переинициализировать движок с новым устройством
+            self._current_engine._availability_checked = False
+            self._current_engine.is_ready()
+            self._status_bar.set_message(f"Устройство изменено на: {device.upper()}")
     
     def _on_preprocessing_changed(self) -> None:
         """Обработать изменение параметров предобработки."""

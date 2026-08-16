@@ -9,17 +9,22 @@ __pycache__/
 .venv/
 venv/
 env/
-
-# Logs and temp files
-*.log
-*.tmp
-
-# Environment
 .env
 .env.local
-*.env.*
+.env.*
 
-# Editors
+# Logs
+*.log
+
+# Editor/IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+*.tmp
+
+# Build/dist
+dist/
+build/
+*.egg-info/
 ```
