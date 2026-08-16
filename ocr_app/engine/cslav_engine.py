@@ -194,9 +194,9 @@ class CSLAVEngine(OCREngine):
         for idx in np.arange(len(a)):
             x = a.item(idx)
             if x:
-                img_flat.itemset((0, idx), 30)
-                img_flat.itemset((1, idx), 30)
-                img_flat.itemset((2, idx), 30)
+                img_flat[0, idx] = 30
+                img_flat[1, idx] = 30
+                img_flat[2, idx] = 30
         
         img_flat = img_flat.T
         return img_flat.reshape(h, w, 3)
