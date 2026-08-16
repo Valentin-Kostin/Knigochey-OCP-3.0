@@ -28,7 +28,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QAction, QIcon, QKeySequence
 from PySide6.QtCore import Qt, QThread, Signal
 
-from ..engine import OCREngine, OCRResult, TesseractEngine, KrakenEngine, TrOCREngine
+from ..engine import OCREngine, OCRResult, TesseractEngine, KrakenEngine, TrOCREngine, CSLAVEngine
 from ..preprocessing import PreprocessingPipeline, PipelineConfig
 from .widgets import (
     ImagePreviewWidget,
@@ -114,6 +114,7 @@ class MainWindow(QMainWindow):
             "tesseract": TesseractEngine(),
             "kraken": KrakenEngine(),
             "trocr": TrOCREngine(),
+            "cslav": CSLAVEngine(),
         }
         
         self._current_engine: Optional[OCREngine] = None

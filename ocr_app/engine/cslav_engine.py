@@ -24,14 +24,18 @@ class CSLAVEngine(OCREngine):
             model_path: Путь к файлу модели (.h5). Если None, использует модель по умолчанию.
         """
         super().__init__("CSLAV OCR")
-        self.model_path = model_path or Path(__file__).parent.parent.parent / "CSLAV_OCR_1.0-main" / "machine.h5"
+        # Путь к модели в папке CSLAV_OCR_1.0-main
+        default_model_path = Path(__file__).parent.parent.parent / "CSLAV_OCR_1.0-main" / "machine.h5"
+        self.model_path = model_path or default_model_path
         self.model = None
         self.predictions_list = None
         self._load_predictions()
+        self._check_availability()
     
     def _load_predictions(self) -> None:
         """Загрузить файл соответствий предсказаний и символов."""
-        predictions_file = Path(__file__).parent.parent.parent / "CSLAV_OCR_1.0-main" / "CSLAV_OCR-main" / "predictions.txt"
+        base_path = Path(__file__).parent.parent.parent / "CSLAV_OCR_1.0-main"
+        predictions_file = base_path / "CSLAV_OCR-main" / "predictions.txt"
         
         if predictions_file.exists():
             try:
@@ -44,7 +48,20 @@ class CSLAVEngine(OCREngine):
             except Exception:
                 self.predictions_list = []
         else:
-            self.predictions_list = []
+            # Альтернативный путь к predictions.txt в корне CSLAV_OCR_1.0-main
+            alt_predictions_file = base_path / "predictions.txt"
+            if alt_predictions_file.exists():
+                try:
+                    with open(alt_predictions_file, 'r', encoding='utf-8') as f:
+                        predictions = f.read()
+                    predictions_list = predictions.split('\n\n')
+                    for i in range(len(predictions_list)):
+                        predictions_list[i] = predictions_list[i].split('\t')
+                    self.predictions_list = predictions_list
+                except Exception:
+                    self.predictions_list = []
+            else:
+                self.predictions_list = []
     
     def _check_availability(self) -> None:
         """Проверить доступность движка и модели."""
