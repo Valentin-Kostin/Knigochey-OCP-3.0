@@ -21,8 +21,9 @@ from PySide6.QtWidgets import (
     QFrame,
     QScrollArea,
     QSizePolicy,
+    QSlider,
 )
-from PySide6.QtGui import QPixmap, QImage, QFont
+from PySide6.QtGui import QPixmap, QImage, QFont, QTransform
 from PySide6.QtCore import Qt, Signal
 
 
@@ -81,6 +82,48 @@ class ImagePreviewWidget(QFrame):
         
         self._zoom_factor = 1.0
         self._original_pixmap: Optional[QPixmap] = None
+        self._rotation_angle = 0  # Угол поворота в градусах
+        
+        # Элементы управления поворотом
+        rotate_layout = QHBoxLayout()
+        
+        self._rotate_left_btn = QPushButton("⟲ 90°")
+        self._rotate_left_btn.setMaximumWidth(60)
+        self._rotate_left_btn.setEnabled(False)
+        self._rotate_left_btn.clicked.connect(self._rotate_left)
+        
+        self._rotate_right_btn = QPushButton("90° ⟳")
+        self._rotate_right_btn.setMaximumWidth(60)
+        self._rotate_right_btn.setEnabled(False)
+        self._rotate_right_btn.clicked.connect(self._rotate_right)
+        
+        self._rotate_180_btn = QPushButton("180°")
+        self._rotate_180_btn.setMaximumWidth(60)
+        self._rotate_180_btn.setEnabled(False)
+        self._rotate_180_btn.clicked.connect(self._rotate_180)
+        
+        self._rotate_slider = QSlider(Qt.Orientation.Horizontal)
+        self._rotate_slider.setMinimum(-180)
+        self._rotate_slider.setMaximum(180)
+        self._rotate_slider.setValue(0)
+        self._rotate_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self._rotate_slider.setTickInterval(90)
+        self._rotate_slider.valueChanged.connect(self._on_rotate_slider_changed)
+        self._rotate_slider.setEnabled(False)
+        
+        self._rotate_label = QLabel("0°")
+        self._rotate_label.setMinimumWidth(40)
+        self._rotate_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        rotate_layout.addStretch()
+        rotate_layout.addWidget(self._rotate_left_btn)
+        rotate_layout.addWidget(self._rotate_180_btn)
+        rotate_layout.addWidget(self._rotate_right_btn)
+        rotate_layout.addWidget(self._rotate_slider)
+        rotate_layout.addWidget(self._rotate_label)
+        rotate_layout.addStretch()
+        
+        layout.addLayout(rotate_layout)
     
     def load_image(self, image_path: Path) -> bool:
         """
@@ -103,10 +146,15 @@ class ImagePreviewWidget(QFrame):
             return False
         
         self._zoom_factor = 1.0
+        self._rotation_angle = 0
         self._update_display()
         
         self._zoom_in_btn.setEnabled(True)
         self._zoom_out_btn.setEnabled(True)
+        self._rotate_left_btn.setEnabled(True)
+        self._rotate_right_btn.setEnabled(True)
+        self._rotate_180_btn.setEnabled(True)
+        self._rotate_slider.setEnabled(True)
         
         self.image_loaded.emit(str(image_path))
         return True
@@ -117,24 +165,40 @@ class ImagePreviewWidget(QFrame):
         self._pixmap = None
         self._original_pixmap = None
         self._zoom_factor = 1.0
+        self._rotation_angle = 0
         
         self._label.clear()
         self._label.setText("Изображение не загружено")
         self._label.setStyleSheet("QLabel { color: gray; }")
         self._zoom_label.setText("100%")
+        self._rotate_label.setText("0°")
+        self._rotate_slider.setValue(0)
         self._zoom_in_btn.setEnabled(False)
         self._zoom_out_btn.setEnabled(False)
+        self._rotate_left_btn.setEnabled(False)
+        self._rotate_right_btn.setEnabled(False)
+        self._rotate_180_btn.setEnabled(False)
+        self._rotate_slider.setEnabled(False)
     
     def _update_display(self) -> None:
-        """Обновить отображаемый pixmap на основе коэффициента масштабирования."""
+        """Обновить отображаемый pixmap на основе коэффициента масштабирования и поворота."""
         if self._original_pixmap is None:
             return
         
-        if self._zoom_factor == 1.0:
-            self._pixmap = self._original_pixmap
+        # Сначала применяем поворот к оригинальному изображению
+        if self._rotation_angle != 0:
+            transform = QTransform()
+            transform.rotate(self._rotation_angle)
+            rotated_pixmap = self._original_pixmap.transformed(transform, Qt.TransformationMode.SmoothTransformation)
         else:
-            new_size = self._original_pixmap.size() * self._zoom_factor
-            self._pixmap = self._original_pixmap.scaled(
+            rotated_pixmap = self._original_pixmap
+        
+        # Затем применяем масштабирование
+        if self._zoom_factor == 1.0:
+            self._pixmap = rotated_pixmap
+        else:
+            new_size = rotated_pixmap.size() * self._zoom_factor
+            self._pixmap = rotated_pixmap.scaled(
                 new_size.toSize(),
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation
@@ -155,6 +219,30 @@ class ImagePreviewWidget(QFrame):
         if self._zoom_factor > 0.2:
             self._zoom_factor /= 1.25
             self._update_display()
+    
+    def _rotate_left(self) -> None:
+        """Повернуть изображение на 90 градусов влево."""
+        self._rotation_angle = (self._rotation_angle - 90) % 360
+        self._rotate_slider.setValue(self._rotation_angle)
+        self._update_display()
+    
+    def _rotate_right(self) -> None:
+        """Повернуть изображение на 90 градусов вправо."""
+        self._rotation_angle = (self._rotation_angle + 90) % 360
+        self._rotate_slider.setValue(self._rotation_angle)
+        self._update_display()
+    
+    def _rotate_180(self) -> None:
+        """Повернуть изображение на 180 градусов."""
+        self._rotation_angle = (self._rotation_angle + 180) % 360
+        self._rotate_slider.setValue(self._rotation_angle)
+        self._update_display()
+    
+    def _on_rotate_slider_changed(self, value: int) -> None:
+        """Обработать изменение ползунка поворота."""
+        self._rotation_angle = value
+        self._rotate_label.setText(f"{value}°")
+        self._update_display()
     
     def get_current_image_path(self) -> Optional[Path]:
         """Получить путь к текущему изображению."""
