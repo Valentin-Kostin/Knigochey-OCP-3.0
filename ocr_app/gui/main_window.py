@@ -75,6 +75,13 @@ class OCRWorker(QThread):
                 try:
                     processed_image = self.pipeline.process_file(self.image_path, tmp_path)
                     process_path = tmp_path
+                    
+                    # Сигнализировать главному окну обновить предпросмотр выровненным изображением
+                    from PySide6.QtWidgets import QApplication
+                    main_window = QApplication.instance().activeWindow()
+                    if main_window and hasattr(main_window, '_image_preview'):
+                        main_window._image_preview.load_image(tmp_path)
+                        
                 except Exception:
                     process_path = self.image_path
             else:

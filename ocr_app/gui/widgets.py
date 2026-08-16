@@ -486,7 +486,7 @@ class PreprocessingOptionsWidget(QGroupBox):
         
         if preset == "default":
             self.set_from_config({
-                "denoise": False, "clahe": True, "deskew": False,
+                "denoise": False, "clahe": True, "deskew": True,
                 "contrast": True, "binarization": False
             })
         elif preset == "old_printed":
