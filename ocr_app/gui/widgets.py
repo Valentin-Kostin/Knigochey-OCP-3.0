@@ -300,6 +300,7 @@ class EngineSelectorWidget(QGroupBox):
     
     engine_changed = Signal(str)  # Испускает имя движка
     model_changed = Signal(str)   # Испускает имя модели
+    device_changed = Signal(str)  # Испускает выбранное устройство (cpu/cuda)
     
     def __init__(self, parent: Optional[QWidget] = None):
         """Инициализировать виджет выбора движка."""
@@ -330,6 +331,21 @@ class EngineSelectorWidget(QGroupBox):
         model_layout.addStretch()
         
         layout.addLayout(model_layout)
+        
+        # Выбор устройства (CPU/GPU)
+        device_layout = QHBoxLayout()
+        device_layout.addWidget(QLabel("Устройство:"))
+        
+        self._device_combo = QComboBox()
+        self._device_combo.addItem("Авто (CUDA если доступно)", "auto")
+        self._device_combo.addItem("CPU (Процессор)", "cpu")
+        self._device_combo.addItem("GPU (CUDA)", "cuda")
+        self._device_combo.setMinimumWidth(200)
+        self._device_combo.currentTextChanged.connect(self._on_device_changed)
+        device_layout.addWidget(self._device_combo)
+        device_layout.addStretch()
+        
+        layout.addLayout(device_layout)
         
         # Статус движка
         self._status_label = QLabel("Статус: Не инициализирован")
@@ -398,6 +414,10 @@ class EngineSelectorWidget(QGroupBox):
             return None
         return self._model_combo.currentText()
     
+    def get_selected_device(self) -> str:
+        """Получить выбранное устройство (cpu/cuda/auto)."""
+        return self._device_combo.currentData()
+    
     def _on_engine_changed(self, engine_name: str) -> None:
         """Обработать изменение выбора движка."""
         # Удалить галочку из отображения
@@ -408,6 +428,11 @@ class EngineSelectorWidget(QGroupBox):
         """Обработать изменение выбора модели."""
         if model_name != "Нет доступных моделей":
             self.model_changed.emit(model_name)
+    
+    def _on_device_changed(self, device_name: str) -> None:
+        """Обработать изменение выбора устройства."""
+        device_data = self._device_combo.currentData()
+        self.device_changed.emit(device_data)
 
 
 class PreprocessingOptionsWidget(QGroupBox):
@@ -447,7 +472,13 @@ class PreprocessingOptionsWidget(QGroupBox):
         self._clahe_check.stateChanged.connect(self._on_option_changed)
         layout.addWidget(self._clahe_check)
         
+        self._orientation_check = QCheckBox("Определение ориентации (OSD)")
+        self._orientation_check.setChecked(True)
+        self._orientation_check.stateChanged.connect(self._on_option_changed)
+        layout.addWidget(self._orientation_check)
+        
         self._deskew_check = QCheckBox("Исправление перекоса")
+        self._deskew_check.setChecked(True)
         self._deskew_check.stateChanged.connect(self._on_option_changed)
         layout.addWidget(self._deskew_check)
         
@@ -467,6 +498,7 @@ class PreprocessingOptionsWidget(QGroupBox):
         return {
             "denoise": self._denoise_check.isChecked(),
             "clahe": self._clahe_check.isChecked(),
+            "orientation": self._orientation_check.isChecked(),
             "deskew": self._deskew_check.isChecked(),
             "contrast": self._contrast_check.isChecked(),
             "binarization": self._binarize_check.isChecked(),
@@ -476,6 +508,7 @@ class PreprocessingOptionsWidget(QGroupBox):
         """Установить опции из словаря конфигурации."""
         self._denoise_check.setChecked(config.get("denoise", False))
         self._clahe_check.setChecked(config.get("clahe", True))
+        self._orientation_check.setChecked(config.get("orientation", True))
         self._deskew_check.setChecked(config.get("deskew", False))
         self._contrast_check.setChecked(config.get("contrast", True))
         self._binarize_check.setChecked(config.get("binarization", False))
@@ -486,22 +519,22 @@ class PreprocessingOptionsWidget(QGroupBox):
         
         if preset == "default":
             self.set_from_config({
-                "denoise": False, "clahe": True, "deskew": False,
+                "denoise": False, "clahe": True, "orientation": True, "deskew": True,
                 "contrast": True, "binarization": False
             })
         elif preset == "old_printed":
             self.set_from_config({
-                "denoise": True, "clahe": True, "deskew": True,
+                "denoise": True, "clahe": True, "orientation": True, "deskew": True,
                 "contrast": True, "binarization": False
             })
         elif preset == "handwritten":
             self.set_from_config({
-                "denoise": True, "clahe": True, "deskew": True,
+                "denoise": True, "clahe": True, "orientation": True, "deskew": True,
                 "contrast": True, "binarization": False
             })
         elif preset == "low_quality":
             self.set_from_config({
-                "denoise": True, "clahe": True, "deskew": True,
+                "denoise": True, "clahe": True, "orientation": True, "deskew": True,
                 "contrast": True, "binarization": True
             })
         # Custom сохраняет текущие настройки

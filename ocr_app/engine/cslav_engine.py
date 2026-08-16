@@ -194,9 +194,9 @@ class CSLAVEngine(OCREngine):
         for idx in np.arange(len(a)):
             x = a.item(idx)
             if x:
-                img_flat.itemset((0, idx), 30)
-                img_flat.itemset((1, idx), 30)
-                img_flat.itemset((2, idx), 30)
+                img_flat[0, idx] = 30
+                img_flat[1, idx] = 30
+                img_flat[2, idx] = 30
         
         img_flat = img_flat.T
         return img_flat.reshape(h, w, 3)
@@ -210,10 +210,17 @@ class CSLAVEngine(OCREngine):
             
         Returns:
             Бинаризованное изображение.
+            
+        Raises:
+            FileNotFoundError: Если файл изображения не найден или не может быть прочитан.
         """
         import cv2
         
         img = cv2.imread(filename)
+        
+        # Проверка на успешную загрузку изображения
+        if img is None or img.size == 0:
+            raise FileNotFoundError(f"Не удалось загрузить изображение: {filename}. Файл может быть поврежден или иметь неподдерживаемый формат.")
         
         # Морфологическое расширение
         se = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
@@ -230,9 +237,9 @@ class CSLAVEngine(OCREngine):
             img_gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU
         )[1]
         
-        # Эрозия для разделения символов
+        # Эрозия для разделения символов - используем ядро 1x1 чтобы сохранить иерархию контуров
         img_erode = cv2.erode(
-            img_binary, np.ones((3, 3), np.uint8), iterations=1
+            img_binary, np.ones((1, 1), np.uint8), iterations=1
         )
         
         return img_erode

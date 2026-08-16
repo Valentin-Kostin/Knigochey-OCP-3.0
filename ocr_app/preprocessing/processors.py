@@ -350,6 +350,65 @@ class DeskewProcessor(ImageProcessor):
             return image
 
 
+class OrientationProcessor(ImageProcessor):
+    """Процессор определения и коррекции ориентации страницы с помощью Tesseract OSD."""
+    
+    def __init__(self, config: Optional[ProcessorConfig] = None):
+        """Инициализировать процессор ориентации."""
+        default_params = {
+            "enabled": True,
+        }
+        if config is None:
+            config = ProcessorConfig(parameters=default_params)
+        elif config.parameters is None:
+            config.parameters = default_params
+        else:
+            config.parameters = {**default_params, **config.parameters}
+        
+        super().__init__(config)
+    
+    def process(self, image: Image.Image) -> Image.Image:
+        """
+        Определить ориентацию страницы и повернуть изображение в правильное положение.
+        Использует Tesseract OSD (Orientation and Script Detection).
+        
+        Args:
+            image: Входное PIL Image.
+            
+        Returns:
+            Изображение с правильной ориентацией PIL Image.
+        """
+        try:
+            import pytesseract
+            from PIL import Image
+            
+            # Получить информацию об ориентации через OSD
+            osd_data = pytesseract.image_to_osd(image)
+            
+            # Найти строку с orient_degrees
+            orientation = 0
+            for line in osd_data.split('\n'):
+                if line.startswith('Orient degrees:'):
+                    orientation = int(line.split(':')[1].strip())
+                    break
+            
+            # Если угол не 0, повернуть изображение
+            if orientation != 0:
+                # Tesseract возвращает: 0, 90, 180, 270
+                # Поворачиваем против часовой стрелки на найденный угол
+                processed = image.rotate(-orientation, expand=True, fillcolor=255)
+                return processed
+            
+            return image
+            
+        except ImportError:
+            # pytesseract недоступен, вернуть исходное
+            return image
+        except Exception:
+            # Любая ошибка, вернуть исходное
+            return image
+
+
 class ContrastProcessor(ImageProcessor):
     """Простой процессор улучшения контраста."""
     

@@ -45,6 +45,7 @@ class OCRWorker(QThread):
     finished = Signal(OCRResult)
     error = Signal(str)
     progress = Signal(int)  # 0-100
+    processed_image_ready = Signal(str)  # Сигнал с путём к обработанному изображению
     
     def __init__(
         self,
@@ -59,6 +60,7 @@ class OCRWorker(QThread):
         self.image_path = image_path
         self.model_name = model_name
         self.pipeline = pipeline
+        self.processed_image_path: Optional[Path] = None
     
     def run(self) -> None:
         """Запустить обработку OCR в фоновом потоке."""
@@ -75,6 +77,11 @@ class OCRWorker(QThread):
                 try:
                     processed_image = self.pipeline.process_file(self.image_path, tmp_path)
                     process_path = tmp_path
+                    self.processed_image_path = tmp_path
+                    
+                    # Сигнализировать главному окну обновить предпросмотр выровненным изображением
+                    self.processed_image_ready.emit(str(tmp_path))
+                        
                 except Exception:
                     process_path = self.image_path
             else:
@@ -85,12 +92,8 @@ class OCRWorker(QThread):
             # Запустить OCR
             result = self.engine.recognize(process_path, self.model_name)
             
-            # Очистить временный файл
-            if self.pipeline and 'tmp_path' in locals():
-                try:
-                    tmp_path.unlink()
-                except Exception:
-                    pass
+            # НЕ удалять временный файл здесь - он может понадобиться для обновления UI
+            # Файл будет удалён при создании нового временного файла или при закрытии приложения
             
             self.progress.emit(100)
             self.finished.emit(result)
@@ -121,6 +124,7 @@ class MainWindow(QMainWindow):
         self._current_pipeline: Optional[PreprocessingPipeline] = None
         self._current_image_path: Optional[Path] = None
         self._last_export_dir: Optional[Path] = None
+        self._processed_image_path: Optional[Path] = None  # Путь к обработанному изображению
         
         # Настроить UI
         self._setup_ui()
@@ -300,6 +304,7 @@ class MainWindow(QMainWindow):
         # Выбор движка
         self._engine_selector.engine_changed.connect(self._on_engine_changed)
         self._engine_selector.model_changed.connect(self._on_model_changed)
+        self._engine_selector.device_changed.connect(self._on_device_changed)
         
         # Параметры предобработки
         self._preprocessing_options.options_changed.connect(self._on_preprocessing_changed)
@@ -344,6 +349,15 @@ class MainWindow(QMainWindow):
         """Обработать изменение выбора модели."""
         pass  # Модель используется во время выполнения OCR
     
+    def _on_device_changed(self, device: str) -> None:
+        """Обработать изменение выбора устройства (CPU/GPU)."""
+        if self._current_engine and hasattr(self._current_engine, 'set_device'):
+            self._current_engine.set_device(device)
+            # Переинициализировать движок с новым устройством
+            self._current_engine._availability_checked = False
+            self._current_engine.is_ready()
+            self._status_bar.set_message(f"Устройство изменено на: {device.upper()}")
+    
     def _on_preprocessing_changed(self) -> None:
         """Обработать изменение параметров предобработки."""
         config_dict = self._preprocessing_options.get_config()
@@ -357,6 +371,7 @@ class MainWindow(QMainWindow):
             config = PipelineConfig(
                 denoise=ProcessorConfig(enabled=config_dict["denoise"]),
                 clahe=ProcessorConfig(enabled=config_dict["clahe"]),
+                orientation=ProcessorConfig(enabled=config_dict["orientation"]),
                 deskew=ProcessorConfig(enabled=config_dict["deskew"]),
                 contrast=ProcessorConfig(enabled=config_dict["contrast"]),
                 binarization=ProcessorConfig(enabled=config_dict["binarization"]),
@@ -393,7 +408,10 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Предупреждение", "Нет доступного OCR-движка")
             return
         
-        if not self._current_image_path:
+        # Использовать обработанное изображение если оно есть (для повторного распознавания), иначе оригинальное
+        image_to_use = self._processed_image_path if self._processed_image_path and self._processed_image_path.exists() else self._current_image_path
+        
+        if not image_to_use:
             QMessageBox.warning(self, "Предупреждение", "Изображение не загружено")
             return
         
@@ -406,10 +424,10 @@ class MainWindow(QMainWindow):
         # Получить выбранную модель
         model_name = self._engine_selector.get_selected_model()
         
-        # Создать рабочий поток
+        # Создать рабочий поток - всегда используем оригинальное изображение для конвейера
         self._worker = OCRWorker(
             engine=self._current_engine,
-            image_path=self._current_image_path,
+            image_path=self._current_image_path,  # Всегда используем оригинал для предобработки
             model_name=model_name,
             pipeline=self._current_pipeline,
         )
@@ -417,8 +435,16 @@ class MainWindow(QMainWindow):
         self._worker.finished.connect(self._on_ocr_finished)
         self._worker.error.connect(self._on_ocr_error)
         self._worker.progress.connect(self._status_bar.set_progress)
+        self._worker.processed_image_ready.connect(self._on_processed_image_ready)
         
         self._worker.start()
+    
+    def _on_processed_image_ready(self, processed_image_path: str) -> None:
+        """Обработать готовность обработанного изображения для обновления предпросмотра."""
+        # Сохранить путь к обработанному изображению
+        self._processed_image_path = Path(processed_image_path)
+        # Обновить предпросмотр выровненным/обработанным изображением
+        self._image_preview.load_image(self._processed_image_path)
     
     def _on_ocr_finished(self, result: OCRResult) -> None:
         """Обработать завершение OCR."""
@@ -540,6 +566,7 @@ class MainWindow(QMainWindow):
         self._image_preview.clear()
         self._text_editor.clear()
         self._current_image_path = None
+        self._processed_image_path = None  # Очистить путь к обработанному изображению
         self._process_btn.setEnabled(False)
         self._status_bar.reset()
         self._status_bar.set_message("Готов - Загрузите изображение для начала работы")
