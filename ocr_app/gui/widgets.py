@@ -1,5 +1,5 @@
 """
-Custom widgets for the OCR application GUI.
+Пользовательские виджеты для графического интерфейса OCR-приложения.
 """
 
 from pathlib import Path
@@ -27,12 +27,12 @@ from PySide6.QtCore import Qt, Signal
 
 
 class ImagePreviewWidget(QFrame):
-    """Widget for displaying image preview with zoom and pan."""
+    """Виджет для предпросмотра изображения с масштабированием и перемещением."""
     
-    image_loaded = Signal(str)  # Emits file path when image is loaded
+    image_loaded = Signal(str)  # Испускает путь к файлу при загрузке изображения
     
     def __init__(self, parent: Optional[QWidget] = None):
-        """Initialize image preview widget."""
+        """Инициализировать виджет предпросмотра изображения."""
         super().__init__(parent)
         
         self.setFrameStyle(QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken)
@@ -42,19 +42,19 @@ class ImagePreviewWidget(QFrame):
         self._current_image_path: Optional[Path] = None
         self._pixmap: Optional[QPixmap] = None
         
-        # Setup UI
+        # Настроить UI
         layout = QVBoxLayout(self)
         layout.setContentsMargins(5, 5, 5, 5)
         
         self._label = QLabel()
         self._label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._label.setMinimumSize(200, 150)
-        self._label.setText("No image loaded")
+        self._label.setText("Изображение не загружено")
         self._label.setStyleSheet("QLabel { color: gray; }")
         
         layout.addWidget(self._label)
         
-        # Zoom controls
+        # Элементы управления масштабированием
         zoom_layout = QHBoxLayout()
         
         self._zoom_in_btn = QPushButton("+")
@@ -84,13 +84,13 @@ class ImagePreviewWidget(QFrame):
     
     def load_image(self, image_path: Path) -> bool:
         """
-        Load an image for preview.
+        Загрузить изображение для предпросмотра.
         
         Args:
-            image_path: Path to the image file.
+            image_path: Путь к файлу изображения.
             
         Returns:
-            True if successful, False otherwise.
+            True если успешно, False иначе.
         """
         if not image_path.exists():
             return False
@@ -99,7 +99,7 @@ class ImagePreviewWidget(QFrame):
         self._original_pixmap = QPixmap(str(image_path))
         
         if self._original_pixmap.isNull():
-            self._label.setText("Failed to load image")
+            self._label.setText("Не удалось загрузить изображение")
             return False
         
         self._zoom_factor = 1.0
@@ -112,21 +112,21 @@ class ImagePreviewWidget(QFrame):
         return True
     
     def clear(self) -> None:
-        """Clear the current image."""
+        """Очистить текущее изображение."""
         self._current_image_path = None
         self._pixmap = None
         self._original_pixmap = None
         self._zoom_factor = 1.0
         
         self._label.clear()
-        self._label.setText("No image loaded")
+        self._label.setText("Изображение не загружено")
         self._label.setStyleSheet("QLabel { color: gray; }")
         self._zoom_label.setText("100%")
         self._zoom_in_btn.setEnabled(False)
         self._zoom_out_btn.setEnabled(False)
     
     def _update_display(self) -> None:
-        """Update the displayed pixmap based on zoom factor."""
+        """Обновить отображаемый pixmap на основе коэффициента масштабирования."""
         if self._original_pixmap is None:
             return
         
@@ -145,52 +145,52 @@ class ImagePreviewWidget(QFrame):
         self._zoom_label.setText(f"{int(self._zoom_factor * 100)}%")
     
     def _zoom_in(self) -> None:
-        """Zoom in the image."""
+        """Увеличить масштаб изображения."""
         if self._zoom_factor < 5.0:
             self._zoom_factor *= 1.25
             self._update_display()
     
     def _zoom_out(self) -> None:
-        """Zoom out the image."""
+        """Уменьшить масштаб изображения."""
         if self._zoom_factor > 0.2:
             self._zoom_factor /= 1.25
             self._update_display()
     
     def get_current_image_path(self) -> Optional[Path]:
-        """Get the current image path."""
+        """Получить путь к текущему изображению."""
         return self._current_image_path
 
 
 class TextEditorWidget(QTextEdit):
-    """Text editor widget for displaying and editing OCR results."""
+    """Виджет текстового редактора для отображения и редактирования результатов OCR."""
     
-    text_changed = Signal()  # Emitted when text is modified
+    text_changed = Signal()  # Испускается при изменении текста
     
     def __init__(self, parent: Optional[QWidget] = None):
-        """Initialize text editor widget."""
+        """Инициализировать виджет текстового редактора."""
         super().__init__(parent)
         
-        # Set monospace font for better readability
+        # Установить моноширинный шрифт для лучшей читаемости
         font = QFont("Courier New", 11)
         font.setStyleHint(QFont.StyleHint.Monospace)
         self.setFont(font)
         
-        # Enable line wrapping
+        # Включить перенос строк
         self.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
         
-        # Set placeholder text
-        self.setPlaceholderText("OCR result will appear here...\n\nYou can edit this text before exporting.")
+        # Установить текст-заполнитель
+        self.setPlaceholderText("Здесь появится результат OCR...\n\nВы можете отредактировать этот текст перед экспортом.")
         
-        # Connect signal
+        # Подключить сигнал
         self.textChanged.connect(self.text_changed.emit)
     
     def set_result_text(self, text: str, metadata: Optional[str] = None) -> None:
         """
-        Set the OCR result text with optional metadata.
+        Установить текст результата OCR с опциональными метаданными.
         
         Args:
-            text: The recognized text.
-            metadata: Optional metadata header.
+            text: Распознанный текст.
+            metadata: Опциональный заголовок метаданных.
         """
         if metadata:
             self.setPlainText(f"{metadata}\n\n{text}")
@@ -198,30 +198,30 @@ class TextEditorWidget(QTextEdit):
             self.setPlainText(text)
     
     def clear(self) -> None:
-        """Clear the text editor."""
+        """Очистить текстовый редактор."""
         self.clear()
-        self.setPlaceholderText("OCR result will appear here...\n\nYou can edit this text before exporting.")
+        self.setPlaceholderText("Здесь появится результат OCR...\n\nВы можете отредактировать этот текст перед экспортом.")
     
     def get_text(self) -> str:
-        """Get the current text content."""
+        """Получить текущее содержимое текста."""
         return self.toPlainText()
 
 
 class EngineSelectorWidget(QGroupBox):
-    """Widget for selecting OCR engine and model."""
+    """Виджет для выбора OCR-движка и модели."""
     
-    engine_changed = Signal(str)  # Emits engine name
-    model_changed = Signal(str)   # Emits model name
+    engine_changed = Signal(str)  # Испускает имя движка
+    model_changed = Signal(str)   # Испускает имя модели
     
     def __init__(self, parent: Optional[QWidget] = None):
-        """Initialize engine selector widget."""
-        super().__init__("OCR Engine", parent)
+        """Инициализировать виджет выбора движка."""
+        super().__init__("OCR-движок", parent)
         
         layout = QVBoxLayout(self)
         
-        # Engine selection
+        # Выбор движка
         engine_layout = QHBoxLayout()
-        engine_layout.addWidget(QLabel("Engine:"))
+        engine_layout.addWidget(QLabel("Движок:"))
         
         self._engine_combo = QComboBox()
         self._engine_combo.setMinimumWidth(200)
@@ -231,9 +231,9 @@ class EngineSelectorWidget(QGroupBox):
         
         layout.addLayout(engine_layout)
         
-        # Model selection
+        # Выбор модели
         model_layout = QHBoxLayout()
-        model_layout.addWidget(QLabel("Model:"))
+        model_layout.addWidget(QLabel("Модель:"))
         
         self._model_combo = QComboBox()
         self._model_combo.setMinimumWidth(200)
@@ -243,8 +243,8 @@ class EngineSelectorWidget(QGroupBox):
         
         layout.addLayout(model_layout)
         
-        # Engine status
-        self._status_label = QLabel("Status: Not initialized")
+        # Статус движка
+        self._status_label = QLabel("Статус: Не инициализирован")
         self._status_label.setStyleSheet("color: orange;")
         layout.addWidget(self._status_label)
         
@@ -252,10 +252,10 @@ class EngineSelectorWidget(QGroupBox):
     
     def populate_engines(self, engines: list[tuple[str, bool]]) -> None:
         """
-        Populate the engine combo box.
+        Заполнить комбо-бокс движков.
         
         Args:
-            engines: List of (engine_name, is_available) tuples.
+            engines: Список кортежей (имя_движка, доступен).
         """
         self._engine_combo.clear()
         
@@ -268,15 +268,15 @@ class EngineSelectorWidget(QGroupBox):
     
     def populate_models(self, models: list[str]) -> None:
         """
-        Populate the model combo box.
+        Заполнить комбо-бокс моделей.
         
         Args:
-            models: List of model names.
+            models: Список названий моделей.
         """
         self._model_combo.clear()
         
         if not models:
-            self._model_combo.addItem("No models available")
+            self._model_combo.addItem("Нет доступных моделей")
             self._model_combo.setEnabled(False)
         else:
             for model in models:
@@ -285,97 +285,97 @@ class EngineSelectorWidget(QGroupBox):
     
     def set_status(self, status: str, success: bool = True) -> None:
         """
-        Set the engine status message.
+        Установить сообщение статуса движка.
         
         Args:
-            status: Status message.
-            success: Whether the status indicates success.
+            status: Сообщение статуса.
+            success: Указывает ли статус на успех.
         """
-        self._status_label.setText(f"Status: {status}")
+        self._status_label.setText(f"Статус: {status}")
         
         if success:
             self._status_label.setStyleSheet("color: green;")
-        elif status == "Not initialized":
+        elif status == "Не инициализирован":
             self._status_label.setStyleSheet("color: orange;")
         else:
             self._status_label.setStyleSheet("color: red;")
     
     def get_selected_engine(self) -> Optional[str]:
-        """Get the currently selected engine name."""
+        """Получить имя выбранного в данный момент движка."""
         return self._engine_combo.currentData()
     
     def get_selected_model(self) -> Optional[str]:
-        """Get the currently selected model name."""
+        """Получить имя выбранной в данный момент модели."""
         if not self._model_combo.isEnabled():
             return None
         return self._model_combo.currentText()
     
     def _on_engine_changed(self, engine_name: str) -> None:
-        """Handle engine selection change."""
-        # Remove checkmark from display
+        """Обработать изменение выбора движка."""
+        # Удалить галочку из отображения
         clean_name = engine_name.split(" ", 1)[-1] if " " in engine_name else engine_name
         self.engine_changed.emit(clean_name)
     
     def _on_model_changed(self, model_name: str) -> None:
-        """Handle model selection change."""
-        if model_name != "No models available":
+        """Обработать изменение выбора модели."""
+        if model_name != "Нет доступных моделей":
             self.model_changed.emit(model_name)
 
 
 class PreprocessingOptionsWidget(QGroupBox):
-    """Widget for configuring preprocessing options."""
+    """Виджет для настройки параметров предобработки."""
     
-    options_changed = Signal()  # Emitted when any option changes
+    options_changed = Signal()  # Испускается при изменении любой опции
     
     def __init__(self, parent: Optional[QWidget] = None):
-        """Initialize preprocessing options widget."""
-        super().__init__("Preprocessing", parent)
+        """Инициализировать виджет параметров предобработки."""
+        super().__init__("Предобработка", parent)
         
         layout = QVBoxLayout(self)
         
-        # Preset selection
+        # Выбор пресета
         preset_layout = QHBoxLayout()
-        preset_layout.addWidget(QLabel("Preset:"))
+        preset_layout.addWidget(QLabel("Пресет:"))
         
         self._preset_combo = QComboBox()
-        self._preset_combo.addItem("Default", "default")
-        self._preset_combo.addItem("Old Printed Text", "old_printed")
-        self._preset_combo.addItem("Handwritten", "handwritten")
-        self._preset_combo.addItem("Low Quality Scan", "low_quality")
-        self._preset_combo.addItem("Custom", "custom")
+        self._preset_combo.addItem("По умолчанию", "default")
+        self._preset_combo.addItem("Старый печатный текст", "old_printed")
+        self._preset_combo.addItem("Рукописный", "handwritten")
+        self._preset_combo.addItem("Скан низкого качества", "low_quality")
+        self._preset_combo.addItem("Пользовательский", "custom")
         self._preset_combo.currentIndexChanged.connect(self._on_preset_changed)
         preset_layout.addWidget(self._preset_combo)
         preset_layout.addStretch()
         
         layout.addLayout(preset_layout)
         
-        # Individual options
-        self._denoise_check = QCheckBox("Denoise")
+        # Индивидуальные опции
+        self._denoise_check = QCheckBox("Шумоподавление")
         self._denoise_check.stateChanged.connect(self._on_option_changed)
         layout.addWidget(self._denoise_check)
         
-        self._clahe_check = QCheckBox("Contrast Enhancement (CLAHE)")
+        self._clahe_check = QCheckBox("Улучшение контраста (CLAHE)")
         self._clahe_check.setChecked(True)
         self._clahe_check.stateChanged.connect(self._on_option_changed)
         layout.addWidget(self._clahe_check)
         
-        self._deskew_check = QCheckBox("Deskew")
+        self._deskew_check = QCheckBox("Исправление перекоса")
         self._deskew_check.stateChanged.connect(self._on_option_changed)
         layout.addWidget(self._deskew_check)
         
-        self._contrast_check = QCheckBox("Contrast Adjustment")
+        self._contrast_check = QCheckBox("Коррекция контраста")
         self._contrast_check.setChecked(True)
         self._contrast_check.stateChanged.connect(self._on_option_changed)
         layout.addWidget(self._contrast_check)
         
-        self._binarize_check = QCheckBox("Binarization")
+        self._binarize_check = QCheckBox("Бинаризация")
         self._binarize_check.stateChanged.connect(self._on_option_changed)
         layout.addWidget(self._binarize_check)
         
         layout.addStretch()
     
     def get_config(self) -> dict:
-        """Get current preprocessing configuration."""
+        """Получить текущую конфигурацию предобработки."""
         return {
             "denoise": self._denoise_check.isChecked(),
             "clahe": self._clahe_check.isChecked(),
@@ -385,7 +385,7 @@ class PreprocessingOptionsWidget(QGroupBox):
         }
     
     def set_from_config(self, config: dict) -> None:
-        """Set options from a configuration dictionary."""
+        """Установить опции из словаря конфигурации."""
         self._denoise_check.setChecked(config.get("denoise", False))
         self._clahe_check.setChecked(config.get("clahe", True))
         self._deskew_check.setChecked(config.get("deskew", False))
@@ -393,7 +393,7 @@ class PreprocessingOptionsWidget(QGroupBox):
         self._binarize_check.setChecked(config.get("binarization", False))
     
     def _on_preset_changed(self, index: int) -> None:
-        """Handle preset selection change."""
+        """Обработать изменение выбора пресета."""
         preset = self._preset_combo.currentData()
         
         if preset == "default":
@@ -416,32 +416,32 @@ class PreprocessingOptionsWidget(QGroupBox):
                 "denoise": True, "clahe": True, "deskew": True,
                 "contrast": True, "binarization": True
             })
-        # Custom keeps current settings
+        # Custom сохраняет текущие настройки
         
         self.options_changed.emit()
     
     def _on_option_changed(self) -> None:
-        """Handle individual option change."""
-        self._preset_combo.setCurrentText("Custom")
+        """Обработать изменение индивидуальной опции."""
+        self._preset_combo.setCurrentText("Пользовательский")
         self.options_changed.emit()
 
 
 class StatusBarWidget(QWidget):
-    """Status bar widget showing progress and messages."""
+    """Виджет строки состояния, отображающий прогресс и сообщения."""
     
     def __init__(self, parent: Optional[QWidget] = None):
-        """Initialize status bar widget."""
+        """Инициализировать виджет строки состояния."""
         super().__init__(parent)
         
         layout = QHBoxLayout(self)
         layout.setContentsMargins(5, 2, 5, 2)
         
-        # Status label
-        self._status_label = QLabel("Ready")
+        # Метка статуса
+        self._status_label = QLabel("Готов")
         self._status_label.setMinimumWidth(200)
         layout.addWidget(self._status_label)
         
-        # Progress bar
+        # Индикатор прогресса
         self._progress = QProgressBar()
         self._progress.setMinimum(0)
         self._progress.setMaximum(100)
@@ -451,22 +451,22 @@ class StatusBarWidget(QWidget):
         self._progress.hide()
         layout.addWidget(self._progress)
         
-        # Info label
+        # Информационная метка
         self._info_label = QLabel("")
         self._info_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         layout.addWidget(self._info_label)
     
     def set_message(self, message: str) -> None:
-        """Set the status message."""
+        """Установить сообщение статуса."""
         self._status_label.setText(message)
     
     def set_progress(self, value: int, show: bool = True) -> None:
         """
-        Set progress value.
+        Установить значение прогресса.
         
         Args:
-            value: Progress value (0-100).
-            show: Whether to show the progress bar.
+            value: Значение прогресса (0-100).
+            show: Показывать ли индикатор прогресса.
         """
         self._progress.setValue(value)
         if show:
@@ -475,12 +475,12 @@ class StatusBarWidget(QWidget):
             self._progress.hide()
     
     def set_info(self, info: str) -> None:
-        """Set the info text."""
+        """Установить информационный текст."""
         self._info_label.setText(info)
     
     def reset(self) -> None:
-        """Reset the status bar to default state."""
-        self._status_label.setText("Ready")
+        """Сбросить строку состояния к состоянию по умолчанию."""
+        self._status_label.setText("Готов")
         self._progress.setValue(0)
         self._progress.hide()
         self._info_label.setText("")
