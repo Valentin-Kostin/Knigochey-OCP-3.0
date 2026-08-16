@@ -361,6 +361,7 @@ class MainWindow(QMainWindow):
             config = PipelineConfig(
                 denoise=ProcessorConfig(enabled=config_dict["denoise"]),
                 clahe=ProcessorConfig(enabled=config_dict["clahe"]),
+                orientation=ProcessorConfig(enabled=config_dict["orientation"]),
                 deskew=ProcessorConfig(enabled=config_dict["deskew"]),
                 contrast=ProcessorConfig(enabled=config_dict["contrast"]),
                 binarization=ProcessorConfig(enabled=config_dict["binarization"]),

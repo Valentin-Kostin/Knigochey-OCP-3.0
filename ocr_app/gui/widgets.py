@@ -447,7 +447,13 @@ class PreprocessingOptionsWidget(QGroupBox):
         self._clahe_check.stateChanged.connect(self._on_option_changed)
         layout.addWidget(self._clahe_check)
         
+        self._orientation_check = QCheckBox("Определение ориентации (OSD)")
+        self._orientation_check.setChecked(True)
+        self._orientation_check.stateChanged.connect(self._on_option_changed)
+        layout.addWidget(self._orientation_check)
+        
         self._deskew_check = QCheckBox("Исправление перекоса")
+        self._deskew_check.setChecked(True)
         self._deskew_check.stateChanged.connect(self._on_option_changed)
         layout.addWidget(self._deskew_check)
         
@@ -467,6 +473,7 @@ class PreprocessingOptionsWidget(QGroupBox):
         return {
             "denoise": self._denoise_check.isChecked(),
             "clahe": self._clahe_check.isChecked(),
+            "orientation": self._orientation_check.isChecked(),
             "deskew": self._deskew_check.isChecked(),
             "contrast": self._contrast_check.isChecked(),
             "binarization": self._binarize_check.isChecked(),
@@ -476,6 +483,7 @@ class PreprocessingOptionsWidget(QGroupBox):
         """Установить опции из словаря конфигурации."""
         self._denoise_check.setChecked(config.get("denoise", False))
         self._clahe_check.setChecked(config.get("clahe", True))
+        self._orientation_check.setChecked(config.get("orientation", True))
         self._deskew_check.setChecked(config.get("deskew", False))
         self._contrast_check.setChecked(config.get("contrast", True))
         self._binarize_check.setChecked(config.get("binarization", False))
@@ -486,22 +494,22 @@ class PreprocessingOptionsWidget(QGroupBox):
         
         if preset == "default":
             self.set_from_config({
-                "denoise": False, "clahe": True, "deskew": True,
+                "denoise": False, "clahe": True, "orientation": True, "deskew": True,
                 "contrast": True, "binarization": False
             })
         elif preset == "old_printed":
             self.set_from_config({
-                "denoise": True, "clahe": True, "deskew": True,
+                "denoise": True, "clahe": True, "orientation": True, "deskew": True,
                 "contrast": True, "binarization": False
             })
         elif preset == "handwritten":
             self.set_from_config({
-                "denoise": True, "clahe": True, "deskew": True,
+                "denoise": True, "clahe": True, "orientation": True, "deskew": True,
                 "contrast": True, "binarization": False
             })
         elif preset == "low_quality":
             self.set_from_config({
-                "denoise": True, "clahe": True, "deskew": True,
+                "denoise": True, "clahe": True, "orientation": True, "deskew": True,
                 "contrast": True, "binarization": True
             })
         # Custom сохраняет текущие настройки
