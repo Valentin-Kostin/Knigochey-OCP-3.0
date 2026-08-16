@@ -31,7 +31,7 @@ class KrakenEngine(OCREngine):
             import kraken
             
             # Попытаться получить версию для проверки установки
-            self._kraken_version = kraken.__version__
+            self._kraken_version = getattr(kraken, '__version__', 'unknown')
             
             # Получить список установленных моделей (может завершиться ошибкой, если модели не установлены)
             try:

@@ -1,6 +1,6 @@
 """
-Preprocessing pipeline for OCR.
-Chains multiple image processors together.
+Конвейер предобработки для OCR.
+Объединяет несколько процессоров изображений в цепочку.
 """
 
 from dataclasses import dataclass, field
@@ -22,7 +22,7 @@ from .processors import (
 
 @dataclass
 class PipelineConfig:
-    """Configuration for the preprocessing pipeline."""
+    """Конфигурация конвейера предобработки."""
     
     denoise: ProcessorConfig = field(default_factory=lambda: ProcessorConfig(enabled=False))
     clahe: ProcessorConfig = field(default_factory=lambda: ProcessorConfig(enabled=True))
@@ -32,7 +32,7 @@ class PipelineConfig:
     
     @classmethod
     def default(cls) -> "PipelineConfig":
-        """Get default configuration for historical documents."""
+        """Получить конфигурацию по умолчанию для исторических документов."""
         return cls(
             denoise=ProcessorConfig(enabled=False),
             clahe=ProcessorConfig(enabled=True, parameters={"clip_limit": 2.0}),
@@ -43,7 +43,7 @@ class PipelineConfig:
     
     @classmethod
     def for_old_printed(cls) -> "PipelineConfig":
-        """Configuration optimized for old printed texts."""
+        """Конфигурация, оптимизированная для старых печатных текстов."""
         return cls(
             denoise=ProcessorConfig(enabled=True, parameters={"method": "bilateral", "strength": 5}),
             clahe=ProcessorConfig(enabled=True, parameters={"clip_limit": 3.0}),
@@ -54,7 +54,7 @@ class PipelineConfig:
     
     @classmethod
     def for_handwritten(cls) -> "PipelineConfig":
-        """Configuration optimized for handwritten manuscripts."""
+        """Конфигурация, оптимизированная для рукописных манускриптов."""
         return cls(
             denoise=ProcessorConfig(enabled=True, parameters={"method": "nlmeans", "strength": 8}),
             clahe=ProcessorConfig(enabled=True, parameters={"clip_limit": 2.5}),
@@ -65,7 +65,7 @@ class PipelineConfig:
     
     @classmethod
     def for_low_quality(cls) -> "PipelineConfig":
-        """Configuration for low quality scans."""
+        """Конфигурация для сканов низкого качества."""
         return cls(
             denoise=ProcessorConfig(enabled=True, parameters={"method": "nlmeans", "strength": 15}),
             clahe=ProcessorConfig(enabled=True, parameters={"clip_limit": 4.0}),
@@ -77,27 +77,27 @@ class PipelineConfig:
 
 class PreprocessingPipeline:
     """
-    Pipeline for chaining image preprocessing operations.
+    Конвейер для объединения операций предобработки изображений.
     
-    Applies processors in a specific order to optimize images for OCR.
+    Применяет процессоры в определённом порядке для оптимизации изображений для OCR.
     """
     
     def __init__(self, config: Optional[PipelineConfig] = None):
         """
-        Initialize the preprocessing pipeline.
+        Инициализировать конвейер предобработки.
         
         Args:
-            config: Pipeline configuration. Uses default if None.
+            config: Конфигурация конвейера. Используется по умолчанию, если None.
         """
         self.config = config or PipelineConfig.default()
         self._processors: list[ImageProcessor] = []
         self._build_pipeline()
     
     def _build_pipeline(self) -> None:
-        """Build the processor chain based on configuration."""
+        """Построить цепочку процессоров на основе конфигурации."""
         self._processors = []
         
-        # Order matters: denoise first, then enhancements, then binarization
+        # Порядок важен: сначала шумоподавление, затем улучшения, потом бинаризация
         if self.config.denoise.enabled:
             self._processors.append(DenoiseProcessor(self.config.denoise))
         
@@ -115,13 +115,13 @@ class PreprocessingPipeline:
     
     def process(self, image: Image.Image) -> Image.Image:
         """
-        Process an image through the pipeline.
+        Обработать изображение через конвейер.
         
         Args:
-            image: Input PIL Image.
+            image: Входное PIL Image.
             
         Returns:
-            Processed PIL Image.
+            Обработанное PIL Image.
         """
         result = image
         
@@ -132,46 +132,46 @@ class PreprocessingPipeline:
     
     def process_file(self, input_path: Path, output_path: Optional[Path] = None) -> Image.Image:
         """
-        Process an image file.
+        Обработать файл изображения.
         
         Args:
-            input_path: Path to input image file.
-            output_path: Optional path to save processed image.
+            input_path: Путь к входному файлу изображения.
+            output_path: Опциональный путь для сохранения обработанного изображения.
             
         Returns:
-            Processed PIL Image.
+            Обработанное PIL Image.
             
         Raises:
-            FileNotFoundError: If input file doesn't exist.
+            FileNotFoundError: Если входной файл не существует.
         """
         if not input_path.exists():
-            raise FileNotFoundError(f"Image file not found: {input_path}")
+            raise FileNotFoundError(f"Файл изображения не найден: {input_path}")
         
-        # Load image
+        # Загрузить изображение
         with Image.open(input_path) as img:
-            # Convert to RGB if necessary
+            # Конвертировать в RGB при необходимости
             if img.mode not in ('RGB', 'L'):
                 img = img.convert('RGB')
             
-            # Process
+            # Обработать
             result = self.process(img)
         
-        # Save if output path specified
+        # Сохранить, если указан путь вывода
         if output_path is not None:
             result.save(output_path)
         
         return result
     
     def get_active_processors(self) -> list[str]:
-        """Get list of active processor names."""
+        """Получить список имён активных процессоров."""
         return [p.name for p in self._processors]
     
     def rebuild(self, config: Optional[PipelineConfig] = None) -> None:
         """
-        Rebuild the pipeline with new configuration.
+        Перестроить конвейер с новой конфигурацией.
         
         Args:
-            config: New pipeline configuration.
+            config: Новая конфигурация конвейера.
         """
         if config is not None:
             self.config = config
