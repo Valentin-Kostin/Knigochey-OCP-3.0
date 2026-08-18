@@ -366,6 +366,16 @@ class OrientationProcessor(ImageProcessor):
             config.parameters = {**default_params, **config.parameters}
         
         super().__init__(config)
+        self._pytesseract_available = False
+        self._check_pytesseract()
+    
+    def _check_pytesseract(self) -> None:
+        """Проверить доступность pytesseract."""
+        try:
+            import pytesseract  # noqa: F401
+            self._pytesseract_available = True
+        except ImportError:
+            self._pytesseract_available = False
     
     def process(self, image: Image.Image) -> Image.Image:
         """
@@ -378,9 +388,15 @@ class OrientationProcessor(ImageProcessor):
         Returns:
             Изображение с правильной ориентацией PIL Image.
         """
+        if not self._pytesseract_available:
+            # pytesseract недоступен, вернуть исходное изображение без изменений
+            return image
+        
+        if not self.config.enabled:
+            return image
+        
         try:
             import pytesseract
-            from PIL import Image
             
             # Получить информацию об ориентации через OSD
             osd_data = pytesseract.image_to_osd(image)
@@ -401,9 +417,6 @@ class OrientationProcessor(ImageProcessor):
             
             return image
             
-        except ImportError:
-            # pytesseract недоступен, вернуть исходное
-            return image
         except Exception:
             # Любая ошибка, вернуть исходное
             return image

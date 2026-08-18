@@ -99,12 +99,6 @@ class OCREngine(ABC):
         """
         pass
     
-    def _ensure_availability(self) -> None:
-        """Убедиться, что доступность проверена, выполнив проверку если еще не была сделана."""
-        if not self._availability_checked:
-            self._check_availability()
-            self._availability_checked = True
-    
     def is_ready(self) -> bool:
         """Проверить готовность движка к использованию."""
         self._ensure_availability()
