@@ -35,7 +35,9 @@ class CSLAVEngine(OCREngine):
     def _load_predictions(self) -> None:
         """Загрузить файл соответствий предсказаний и символов."""
         base_path = Path(__file__).parent.parent.parent / "CSLAV_OCR_1.0-main"
-        predictions_file = base_path / "CSLAV_OCR-main" / "predictions.txt"
+        
+        # Основной путь: CSLAV_OCR_1.0-main/predictions.txt
+        predictions_file = base_path / "predictions.txt"
         
         if predictions_file.exists():
             try:
@@ -48,8 +50,8 @@ class CSLAVEngine(OCREngine):
             except Exception:
                 self.predictions_list = []
         else:
-            # Альтернативный путь к predictions.txt в корне CSLAV_OCR_1.0-main
-            alt_predictions_file = base_path / "predictions.txt"
+            # Альтернативный путь в подпапке CSLAV_OCR-main
+            alt_predictions_file = base_path / "CSLAV_OCR-main" / "predictions.txt"
             if alt_predictions_file.exists():
                 try:
                     with open(alt_predictions_file, 'r', encoding='utf-8') as f:
@@ -65,12 +67,13 @@ class CSLAVEngine(OCREngine):
     
     def _check_availability(self) -> None:
         """Проверить доступность движка и модели."""
+        self.is_available = False  # По умолчанию недоступен
+        
         try:
             from tensorflow import keras
             
             # Проверить наличие модели
             if not self.model_path.exists():
-                self.is_available = False
                 return
             
             # Проверить наличие зависимостей
@@ -78,15 +81,18 @@ class CSLAVEngine(OCREngine):
                 import cv2
                 import numpy as np
             except ImportError:
-                self.is_available = False
                 return
             
             # Загрузить модель
             self.model = keras.models.load_model(str(self.model_path))
             self.is_available = True
             
-        except (ImportError, RuntimeError, FileNotFoundError, Exception):
-            self.is_available = False
+        except ImportError as e:
+            # TensorFlow или другие зависимости не установлены
+            return
+        except Exception as e:
+            # Другие ошибки загрузки модели
+            return
     
     def recognize(self, image_path: Path, model_name: Optional[str] = None) -> OCRResult:
         """
