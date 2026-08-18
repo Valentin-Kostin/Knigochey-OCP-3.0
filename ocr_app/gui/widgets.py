@@ -347,6 +347,8 @@ class TextEditorWidget(QTextEdit):
         
         # Установить макет виджету
         self.setLayout(main_layout)
+        # Создать панель инструментов шрифтов
+        self._setup_font_toolbar()
     
     def _setup_font_toolbar(self) -> None:
         """Настроить панель инструментов для работы со шрифтами."""
@@ -416,6 +418,13 @@ class TextEditorWidget(QTextEdit):
     def _setup_font_toolbar_old(self) -> None:
         """Устаревший метод настройки панели инструментов (оставлен для совместимости)."""
         pass  # Больше не используется
+        # Вставить панель инструментов над текстовым редактором
+        parent_layout = self.parent().layout()
+        if parent_layout and isinstance(parent_layout, QVBoxLayout):
+            # Найти индекс текущего виджета
+            index = parent_layout.indexOf(self)
+            if index >= 0:
+                parent_layout.insertWidget(index, font_toolbar)
     
     def set_result_text(self, text: str, metadata: Optional[str] = None) -> None:
         """

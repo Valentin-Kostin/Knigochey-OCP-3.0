@@ -30,12 +30,16 @@ build/
 .DS_Store
 Thumbs.db
 
-# Coverage
+# Temporary files
+*.tmp
+*.temp
+
+# Coverage reports
+.coverage
 coverage/
 htmlcov/
-.coverage
 
-# Compressed files
+# Compression files
 *.zip
 *.gz
 *.tar
@@ -58,3 +62,5 @@ htmlcov/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
+
+```
