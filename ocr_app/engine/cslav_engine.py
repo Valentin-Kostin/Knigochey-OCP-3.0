@@ -70,7 +70,7 @@ class CSLAVEngine(OCREngine):
         self.is_available = False  # По умолчанию недоступен
         
         try:
-            from tensorflow import keras
+            import keras
             
             # Проверить наличие модели
             if not self.model_path.exists():
@@ -294,7 +294,7 @@ class CSLAVEngine(OCREngine):
             Список объектов Symbol.
         """
         import cv2
-        from tensorflow import keras
+        import keras
         
         if self.model is None:
             return []
@@ -650,7 +650,7 @@ class Symbol:
             predictions_list: Список соответствий предсказаний и символов.
         """
         import cv2
-        from tensorflow import keras
+        import keras
         
         # Сохранить временный файл
         temp_path = 'temp_symbol.png'
